@@ -1,3 +1,4 @@
+import type { Child } from "hono/jsx";
 import {
   type Advisory,
   type Briefing,
@@ -53,8 +54,7 @@ function EpssTag({ epss }: { epss: NonNullable<ExploitedVuln["epss"]> }) {
   );
 }
 
-function VulnCard({ v, today }: { v: ExploitedVuln; today: string }) {
-  const overdue = v.dueDate !== null && v.dueDate < today;
+function VulnCard({ v }: { v: ExploitedVuln }) {
   return (
     <li class={v.isNew ? "card new" : "card"}>
       <div class="card-head">
@@ -81,7 +81,7 @@ function VulnCard({ v, today }: { v: ExploitedVuln; today: string }) {
         {v.dueDate && (
           <>
             {" · "}
-            <span class={overdue ? "overdue" : undefined}>
+            <span title="CISA's remediation deadline for US federal agencies">
               Federal due date {formatDate(v.dueDate)}
             </span>
           </>
@@ -237,44 +237,119 @@ function SourceLine({ s }: { s: SourceStatus }) {
   );
 }
 
+/** A collapsible briefing section. The summary row stays informative while collapsed. */
+function Section({
+  id,
+  title,
+  total,
+  fresh,
+  meta,
+  children,
+}: {
+  id: string;
+  title: string;
+  total: number;
+  fresh?: number;
+  meta: Child;
+  children: Child;
+}) {
+  return (
+    <details class="section" id={id}>
+      <summary>
+        <span class="section-title">{title}</span>
+        <span class="section-count" title="Items in this section">
+          {total}
+        </span>
+        {fresh !== undefined && fresh > 0 && <span class="badge badge-new">{fresh} new</span>}
+        <span class="section-meta">{meta}</span>
+      </summary>
+      <div class="section-body">{children}</div>
+    </details>
+  );
+}
+
+function Toolbar() {
+  return (
+    <div class="toolbar" role="toolbar" aria-label="Step through sections">
+      <button type="button" data-action="prev" title="Previous section (P or ←)">
+        ‹ Prev
+      </button>
+      <button type="button" data-action="next" class="primary" title="Next section (N or →)">
+        Next ›
+      </button>
+      <span class="toolbar-position" aria-live="polite"></span>
+      <span class="toolbar-spacer"></span>
+      <button type="button" data-action="expand" title="Expand all (E)">
+        Expand all
+      </button>
+      <button type="button" data-action="collapse" title="Collapse all (C)">
+        Collapse all
+      </button>
+    </div>
+  );
+}
+
 export function BriefingPage({ b }: { b: Briefing }) {
-  const newCount = b.exploited.filter((v) => v.isNew).length;
+  const newExploited = b.exploited.filter((v) => v.isNew).length;
   const ics = b.advisories.filter((a) => a.kind === "ics");
   const advisories = b.advisories.filter((a) => a.kind !== "ics");
   const newAdvisories = advisories.filter((a) => a.isNew).length;
-  return (
-    <Layout title={`sitrep · ${formatDate(b.today)}`}>
-      <header>
-        <h1>sitrep · {formatDate(b.today)}</h1>
-        <p class="muted">
-          Since {formatDate(b.newSince)}: {count(newCount, "new exploited vulnerability", "new exploited vulnerabilities")}
+  const newHeadlines = b.headlines.filter((h) => h.isNew).length;
+  const rw = b.ransomware.summary;
+
+  const header = (
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <span class="brand-name">sitrep</span>
+          <span class="brand-date">{formatDate(b.today)}</span>
+        </div>
+        <p class="topbar-summary">
+          Since {formatDate(b.newSince)}: {count(newExploited, "new exploited vulnerability", "new exploited vulnerabilities")}
           {" · "}
           {count(newAdvisories, "new advisory", "new advisories")}
           {" · "}
-          {count(b.headlines.filter((h) => h.isNew).length, "headline", "headlines")}
+          {count(newHeadlines, "headline", "headlines")}
+          {" · "}
+          {count(rw.total, "ransomware victim", "ransomware victims")}
         </p>
-      </header>
+        <Toolbar />
+      </div>
+    </header>
+  );
 
-      <section>
-        <h2>
-          Actively exploited{" "}
-          <span class="muted">· CISA KEV, added since {formatDate(b.windowStart)}, ranked by exploit likelihood</span>
-        </h2>
+  return (
+    <Layout title={`sitrep · ${formatDate(b.today)}`} header={header}>
+      <Section
+        id="exploited"
+        title="Actively exploited"
+        total={b.exploited.length}
+        fresh={newExploited}
+        meta={<>CISA KEV since {formatDate(b.windowStart)} · ranked by exploit likelihood</>}
+      >
         {b.exploited.length === 0 ? (
           <p class="muted">Nothing added to the KEV catalog in this window.</p>
         ) : (
           <ul class="cards">
             {b.exploited.map((v) => (
-              <VulnCard v={v} today={b.today} />
+              <VulnCard v={v} />
             ))}
           </ul>
         )}
-      </section>
+      </Section>
 
-      <section>
-        <h2>
-          Advisories <span class="muted">· CISA, since {formatDate(b.windowStart)}</span>
-        </h2>
+      <Section
+        id="advisories"
+        title="Advisories"
+        total={advisories.length}
+        fresh={newAdvisories}
+        meta={
+          <>
+            CISA since {formatDate(b.windowStart)}
+            {ics.length > 0 && ` · plus ${count(ics.length, "ICS advisory", "ICS advisories")}`}
+          </>
+        }
+      >
         {advisories.length === 0 && ics.length === 0 ? (
           <p class="muted">No CISA advisories in this window.</p>
         ) : (
@@ -291,12 +366,15 @@ export function BriefingPage({ b }: { b: Briefing }) {
             <IcsList items={ics} />
           </>
         )}
-      </section>
+      </Section>
 
-      <section>
-        <h2>
-          Headlines <span class="muted">· since {shortTime(b.headlinesSince)}</span>
-        </h2>
+      <Section
+        id="headlines"
+        title="Headlines"
+        total={b.headlines.length}
+        fresh={newHeadlines}
+        meta={<>News since {shortTime(b.headlinesSince)}</>}
+      >
         {b.headlines.length === 0 ? (
           <p class="muted">No headlines in this window.</p>
         ) : (
@@ -306,30 +384,42 @@ export function BriefingPage({ b }: { b: Briefing }) {
             ))}
           </ul>
         )}
-      </section>
+      </Section>
 
-      <section>
-        <h2>
-          Ransomware activity{" "}
-          <span class="muted">
-            · leak-site posts since {shortTime(b.headlinesSince)} · Source:{" "}
-            <a href="https://www.ransomware.live" target="_blank" rel="noopener noreferrer">
-              Ransomware.live
-            </a>
-          </span>
-        </h2>
-        {b.ransomware.summary.total === 0 ? (
+      <Section
+        id="ransomware"
+        title="Ransomware activity"
+        total={rw.total}
+        meta={
+          <>
+            {rw.inTeamCountry > 0 && <strong class="home-count">{rw.inTeamCountry} in the {TEAM_COUNTRY}</strong>}
+            {rw.inTeamCountry > 0 && " · "}
+            Leak-site posts since {shortTime(b.headlinesSince)}
+          </>
+        }
+      >
+        <p class="attribution">
+          Source:{" "}
+          <a href="https://www.ransomware.live" target="_blank" rel="noopener noreferrer">
+            Ransomware.live
+          </a>
+        </p>
+        {rw.total === 0 ? (
           <p class="muted">No new victims posted in this window.</p>
         ) : (
           <>
             <p>
-              {count(b.ransomware.summary.total, "victim", "victims")} posted
-              {b.ransomware.summary.inTeamCountry > 0 && <>, <strong>{b.ransomware.summary.inTeamCountry} in the {TEAM_COUNTRY}</strong></>}
+              {count(rw.total, "victim", "victims")} posted
+              {rw.inTeamCountry > 0 && (
+                <>
+                  , <strong>{rw.inTeamCountry} in the {TEAM_COUNTRY}</strong>
+                </>
+              )}
               . Most active:{" "}
-              {b.ransomware.summary.topGroups.map((g, i) => (
+              {rw.topGroups.map((g, i) => (
                 <>
                   {i > 0 && ", "}
-                  {g.group} ({g.count})
+                  <span class="badge badge-group">{g.group}</span> {g.count}
                 </>
               ))}
             </p>
@@ -348,9 +438,9 @@ export function BriefingPage({ b }: { b: Briefing }) {
             )}
           </>
         )}
-      </section>
+      </Section>
 
-      <footer>
+      <footer class="sources-footer">
         <h2>Sources</h2>
         <ul class="sources">
           {b.sources.map((s) => (

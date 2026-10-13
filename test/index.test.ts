@@ -32,6 +32,20 @@ describe("access control", () => {
 });
 
 describe("routes", () => {
+  it("renders collapsible sections with the standup toolbar", async () => {
+    const html = await (await exports.default.fetch("http://localhost:8787/")).text();
+    for (const id of ["exploited", "advisories", "headlines", "ransomware"]) {
+      expect(html).toContain(`<details class="section" id="${id}">`);
+    }
+    expect(html).toContain('data-action="next"');
+    expect(html).toMatch(/<script src="\/app\.js" defer/);
+  });
+
+  it("serves the toolbar script only after the access check", async () => {
+    expect((await exports.default.fetch("http://localhost:8787/app.js")).status).toBe(200);
+    expect((await exports.default.fetch("https://sitrep.example.com/app.js")).status).toBe(403);
+  });
+
   it("serves static assets after the access check", async () => {
     const res = await exports.default.fetch("http://localhost:8787/style.css");
     expect(res.status).toBe(200);
