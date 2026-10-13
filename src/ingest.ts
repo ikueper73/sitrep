@@ -1,8 +1,9 @@
+import { feedAdapters } from "./sources/feeds";
 import { kev } from "./sources/kev";
 import type { Fetcher, SourceAdapter } from "./sources/types";
 import { getSourceState, recordFetchError, recordFetchSuccess, upsertItems } from "./store";
 
-export const adapters: SourceAdapter[] = [kev];
+export const adapters: SourceAdapter[] = [kev, ...feedAdapters];
 
 export type IngestOutcome =
   | { source: string; status: "not-modified" }

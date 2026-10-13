@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { requireAccess } from "./access";
-import { buildBriefing, DEFAULT_WINDOW_DAYS } from "./briefing";
+import { buildBriefing } from "./briefing";
 import type { AppEnv, Bindings } from "./env";
 import { runEnrichment } from "./enrich";
 import { runIngestion } from "./ingest";
@@ -10,9 +10,10 @@ const app = new Hono<AppEnv>();
 
 app.use("*", requireAccess);
 
-function windowDays(param: string | undefined): number {
+/** `?days=1..30`; anything else means "use each section's default window". */
+function windowDays(param: string | undefined): number | undefined {
   const n = Number(param);
-  return Number.isInteger(n) && n >= 1 && n <= 30 ? n : DEFAULT_WINDOW_DAYS;
+  return param !== undefined && Number.isInteger(n) && n >= 1 && n <= 30 ? n : undefined;
 }
 
 app.get("/", async (c) => {

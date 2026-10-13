@@ -106,3 +106,23 @@ footer h2 { font-size: 0.95rem; }
 .badge-automatable { color: var(--automatable); background: var(--automatable-bg); }
 .epss { font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .epss-high { color: var(--fg); font-weight: 600; }
+
+/* Advisories and headlines */
+.card-link { font-weight: 600; color: var(--fg); text-decoration: none; }
+.card-link:hover { text-decoration: underline; }
+.badge-kind { color: var(--muted); background: var(--border); }
+.cve-list { margin: 0.4rem 0 0; display: flex; flex-wrap: wrap; gap: 0.35rem; font-size: 0.8rem; }
+.cve-chip {
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+.cve-chip.in-kev { color: var(--danger); background: var(--danger-bg); border-color: transparent; font-weight: 600; }
+.ics { margin-top: 0.75rem; font-size: 0.9rem; }
+.compact { margin: 0.5rem 0 0; padding-left: 1.1rem; display: grid; gap: 0.3rem; }
+.headlines { list-style: none; margin: 0; padding: 0; }
+.headline { padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+.headline:last-child { border-bottom: none; }
+.headline .meta { margin-top: 0.15rem; }

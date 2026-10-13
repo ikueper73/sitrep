@@ -1,4 +1,5 @@
-import { addDays, previousBusinessDay, teamDate } from "./dates";
+import { addDays, previousBusinessDay, teamDate, teamMidnightUtc } from "./dates";
+import { type CisaKind, cisaKind, feeds } from "./sources/feeds";
 import { listSourceStates, type SourceStateRow } from "./store";
 import { adapters } from "./ingest";
 import { enrichers } from "./enrich";
@@ -20,6 +21,30 @@ export interface ExploitedVuln {
   automatable: boolean;
 }
 
+export interface Advisory {
+  kind: CisaKind;
+  title: string;
+  url: string | null;
+  summary: string | null;
+  publishedAt: string;
+  cves: string[];
+  /** The subset of `cves` that is in the KEV catalog. */
+  kevCves: string[];
+  isNew: boolean;
+}
+
+export interface Headline {
+  source: string;
+  sourceName: string;
+  title: string;
+  url: string | null;
+  summary: string | null;
+  publishedAt: string;
+  cves: string[];
+  kevCves: string[];
+  isNew: boolean;
+}
+
 export interface SourceStatus {
   id: string;
   name: string;
@@ -35,7 +60,11 @@ export interface Briefing {
   /** Items on or after this date are "new since the last standup". */
   newSince: string;
   windowStart: string;
+  /** Headlines default to "since the last standup"; an explicit window widens them. */
+  headlinesSince: string;
   exploited: ExploitedVuln[];
+  advisories: Advisory[];
+  headlines: Headline[];
   sources: SourceStatus[];
 }
 
@@ -74,13 +103,40 @@ export function rankExploited(a: ExploitedVuln, b: ExploitedVuln): number {
   );
 }
 
-export async function buildBriefing(db: D1Database, now: Date, windowDays = DEFAULT_WINDOW_DAYS): Promise<Briefing> {
+interface FeedRow {
+  source: string;
+  title: string;
+  summary: string | null;
+  url: string | null;
+  published_at: string;
+  cves: string;
+  kev_cves: string;
+}
+
+// For each item, the CVEs it mentions that are also in the KEV catalog.
+const FEED_ITEMS_SQL = (where: string) => `
+  SELECT i.source, i.title, i.summary, i.url, i.published_at, i.cves,
+         (SELECT json_group_array(j.value) FROM json_each(i.cves) j
+           WHERE EXISTS (SELECT 1 FROM items k WHERE k.id = 'kev:' || j.value)) AS kev_cves
+  FROM items i
+  WHERE ${where} AND i.published_at >= ?
+  ORDER BY i.published_at DESC
+  LIMIT 200`;
+
+const FEED_NAMES = new Map(feeds.map((f) => [f.id, f.name]));
+const NEWS_SOURCES = feeds.filter((f) => f.type === "news").map((f) => f.id);
+
+export async function buildBriefing(db: D1Database, now: Date, windowDays?: number): Promise<Briefing> {
   const today = teamDate(now);
   const newSince = previousBusinessDay(today);
+  const newSinceInstant = teamMidnightUtc(newSince);
   // Always reach back at least to the last business day (e.g. Monday → Friday).
-  const windowStart = [addDays(today, -windowDays), newSince].sort()[0]!;
+  const windowStart = [addDays(today, -(windowDays ?? DEFAULT_WINDOW_DAYS)), newSince].sort()[0]!;
+  const windowStartInstant = teamMidnightUtc(windowStart);
+  const headlinesSince = windowDays === undefined ? newSinceInstant : windowStartInstant;
 
-  const [{ results }, states] = await Promise.all([
+  const newsPlaceholders = NEWS_SOURCES.map(() => "?").join(", ");
+  const [{ results }, { results: advisoryRows }, { results: headlineRows }, states] = await Promise.all([
     db
       .prepare(
         `SELECT i.cves, i.vendors, i.products, i.title, i.summary, i.url, i.published_at, i.tags, i.details,
@@ -92,8 +148,40 @@ export async function buildBriefing(db: D1Database, now: Date, windowDays = DEFA
       )
       .bind(windowStart)
       .all<KevRow>(),
+    db.prepare(FEED_ITEMS_SQL("i.source = 'cisa'")).bind(windowStartInstant).all<FeedRow>(),
+    db
+      .prepare(FEED_ITEMS_SQL(`i.source IN (${newsPlaceholders})`))
+      .bind(...NEWS_SOURCES, headlinesSince)
+      .all<FeedRow>(),
     listSourceStates(db),
   ]);
+
+  const advisories = advisoryRows.map(
+    (r): Advisory => ({
+      kind: cisaKind(r.url),
+      title: r.title,
+      url: r.url,
+      summary: r.summary,
+      publishedAt: r.published_at,
+      cves: JSON.parse(r.cves) as string[],
+      kevCves: JSON.parse(r.kev_cves) as string[],
+      isNew: r.published_at >= newSinceInstant,
+    }),
+  );
+
+  const headlines = headlineRows.map(
+    (r): Headline => ({
+      source: r.source,
+      sourceName: FEED_NAMES.get(r.source) ?? r.source,
+      title: r.title,
+      url: r.url,
+      summary: r.summary,
+      publishedAt: r.published_at,
+      cves: JSON.parse(r.cves) as string[],
+      kevCves: JSON.parse(r.kev_cves) as string[],
+      isNew: r.published_at >= newSinceInstant,
+    }),
+  );
 
   const exploited = results.map((r): ExploitedVuln => {
     const details = JSON.parse(r.details) as { dueDate?: string | null; requiredAction?: string };
@@ -137,5 +225,15 @@ export async function buildBriefing(db: D1Database, now: Date, windowDays = DEFA
     };
   });
 
-  return { generatedAt: now.toISOString(), today, newSince, windowStart, exploited, sources };
+  return {
+    generatedAt: now.toISOString(),
+    today,
+    newSince,
+    windowStart,
+    headlinesSince,
+    exploited,
+    advisories,
+    headlines,
+    sources,
+  };
 }

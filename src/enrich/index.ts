@@ -25,6 +25,7 @@ export const NVD_PER_RUN_WITH_KEY = 30;
 interface CveRow {
   cve: string;
   newest: string;
+  in_kev: number;
   epss_checked_at: string | null;
   nvd_checked_at: string | null;
   cvss_score: number | null;
@@ -56,13 +57,13 @@ export async function runEnrichment(
 
   const { results: rows } = await db
     .prepare(
-      `SELECT c.cve, c.newest, e.epss_checked_at, e.nvd_checked_at, e.cvss_score
-       FROM (SELECT j.value AS cve, MAX(i.published_at) AS newest
+      `SELECT c.cve, c.newest, c.in_kev, e.epss_checked_at, e.nvd_checked_at, e.cvss_score
+       FROM (SELECT j.value AS cve, MAX(i.published_at) AS newest, MAX(i.source = 'kev') AS in_kev
              FROM items i, json_each(i.cves) j
              WHERE i.published_at >= ?
              GROUP BY j.value) c
        LEFT JOIN cve_enrichment e ON e.cve = c.cve
-       ORDER BY c.newest DESC, c.cve`,
+       ORDER BY c.in_kev DESC, c.newest DESC, c.cve`,
     )
     .bind(since)
     .all<CveRow>();
@@ -74,7 +75,8 @@ export async function runEnrichment(
       r.nvd_checked_at === null ||
       olderThan(r.nvd_checked_at, r.cvss_score === null ? NVD_UNSCORED_MAX_AGE : NVD_MAX_AGE, nowMs),
     )
-    // Never-checked CVEs first, then most recently reported.
+    // Never-checked CVEs first; within that, KEV CVEs, then most recently reported
+    // (the query's order; Array.prototype.sort is stable).
     .sort((a, b) => Number(a.nvd_checked_at !== null) - Number(b.nvd_checked_at !== null))
     .slice(0, nvdLimit)
     .map((r) => r.cve);

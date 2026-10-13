@@ -55,6 +55,13 @@ Every adapter returns `NormalisedItem` ([src/sources/types.ts](src/sources/types
 - Team time zone is America/New_York. "New" = published on or after the previous business day (Mon → Fri).
 - Default window: last 7 days (`?days=1..30` on `/` and `/api/briefing`).
 - "Actively exploited" ranking: new items first, then EPSS desc, CVSS desc, date added desc.
+- Advisories (CISA): same window as KEV. ICS advisories are collapsed into one group. "CISA Adds … to KEV" alerts are dropped (duplicate the KEV section).
+- Headlines (news feeds): default "since the last standup" (previous business day, 00:00 Eastern); an explicit `?days=` widens them.
+- CVEs mentioned by advisories/headlines are extracted, enriched, and marked "KEV" when in the catalog.
+
+## CPU budget (Workers Free plan: 10 ms per invocation)
+
+The whole cron run (all sources + enrichment) shares one 10 ms CPU budget. CISA's RSS is ~1.2 MB with full advisory text and no ETag, so it is parsed every hour: the RSS parser decodes only the first 2,500 chars of each description and searches the raw text for CVEs (~3 ms vs ~27 ms naive, measured in Node). KEV JSON parse is ~3 ms but only when the catalog changes. Check the dashboard CPU metric after adding sources; benchmark large feeds before adding them.
 
 ## Enrichment rules
 
@@ -85,6 +92,7 @@ Every adapter returns `NormalisedItem` ([src/sources/types.ts](src/sources/types
 
 - `src/index.tsx` — Hono app (routes) and the `scheduled` handler
 - `src/sources/` — one adapter per source (`kev.ts`), shared `http.ts` (User-Agent, conditional GET), `types.ts`
+- `src/sources/rss.ts` — shared RSS 2.0 parser (regex-based; Workers has no XML parser) and `rssAdapter()`; `feeds.ts` — per-feed config and filters
 - `src/ingest.ts` — runs all adapters independently; `adapters` list registers sources
 - `src/enrich/` — per-CVE enrichment after ingest: `epss.ts`, `nvd.ts` (CVSS + CISA SSVC), `index.ts` (what's due, rate-limit caps)
 - `src/store.ts` — D1 access (item upserts, source_state)

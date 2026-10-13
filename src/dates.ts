@@ -29,3 +29,19 @@ export function formatDate(date: string): string {
     new Date(`${date.slice(0, 10)}T00:00:00Z`),
   );
 }
+
+function offsetMinutes(at: Date, timeZone: string): number {
+  const name =
+    new Intl.DateTimeFormat("en-US", { timeZone, timeZoneName: "longOffset" })
+      .formatToParts(at)
+      .find((p) => p.type === "timeZoneName")?.value ?? "GMT";
+  const m = name.match(/GMT([+-])(\d{2}):(\d{2})/);
+  return m ? (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0;
+}
+
+/** The UTC instant (ISO) of midnight at the start of `date` in the team's time zone. */
+export function teamMidnightUtc(date: string, timeZone = TEAM_TIME_ZONE): string {
+  const utcMidnight = new Date(`${date}T00:00:00Z`);
+  const offset = offsetMinutes(utcMidnight, timeZone);
+  return new Date(utcMidnight.getTime() - offset * 60_000).toISOString();
+}

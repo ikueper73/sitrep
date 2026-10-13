@@ -1,4 +1,4 @@
-import type { Briefing, ExploitedVuln, SourceStatus } from "../briefing";
+import type { Advisory, Briefing, ExploitedVuln, Headline, SourceStatus } from "../briefing";
 import { formatDate, TEAM_TIME_ZONE } from "../dates";
 import { Layout } from "./Layout";
 
@@ -89,6 +89,107 @@ function VulnCard({ v, today }: { v: ExploitedVuln; today: string }) {
   );
 }
 
+function count(n: number, one: string, many: string) {
+  return `${n} ${n === 1 ? one : many}`;
+}
+
+function shortTime(iso: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: TEAM_TIME_ZONE,
+  }).format(new Date(iso));
+}
+
+/** CVE mentions, with the ones in KEV highlighted. */
+function CveList({ cves, kevCves, max = 6 }: { cves: string[]; kevCves: string[]; max?: number }) {
+  if (cves.length === 0) return null;
+  const kev = new Set(kevCves);
+  // KEV CVEs first so they survive the cut.
+  const ordered = [...cves].sort((a, b) => Number(kev.has(b)) - Number(kev.has(a)));
+  return (
+    <p class="cve-list">
+      {ordered.slice(0, max).map((c) => (
+        <a
+          class={kev.has(c) ? "cve-chip in-kev" : "cve-chip"}
+          href={`https://nvd.nist.gov/vuln/detail/${c}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={kev.has(c) ? "In CISA KEV: known exploited" : undefined}
+        >
+          {c}
+          {kev.has(c) && " · KEV"}
+        </a>
+      ))}
+      {cves.length > max && <span class="muted"> +{cves.length - max} more</span>}
+    </p>
+  );
+}
+
+function AdvisoryCard({ a }: { a: Advisory }) {
+  const label = a.kind === "alert" ? "Alert" : a.kind === "advisory" ? "Advisory" : "Notice";
+  return (
+    <li class={a.isNew ? "card new" : "card"}>
+      <div class="card-head">
+        {a.isNew && <span class="badge badge-new">New</span>}
+        <span class="badge badge-kind">{label}</span>
+        <a class="card-link" href={a.url ?? undefined} target="_blank" rel="noopener noreferrer">
+          {a.title}
+        </a>
+      </div>
+      {a.summary && <p class="card-desc">{a.summary}</p>}
+      <CveList cves={a.cves} kevCves={a.kevCves} />
+      <p class="meta">Published {formatDate(a.publishedAt)}</p>
+    </li>
+  );
+}
+
+function IcsList({ items }: { items: Advisory[] }) {
+  if (items.length === 0) return null;
+  const newCount = items.filter((a) => a.isNew).length;
+  return (
+    <details class="ics">
+      <summary>
+        {count(items.length, "ICS advisory", "ICS advisories")}
+        {newCount > 0 && ` (${newCount} new)`}
+      </summary>
+      <ul class="compact">
+        {items.map((a) => (
+          <li>
+            {a.isNew && <span class="badge badge-new">New</span>}{" "}
+            <a href={a.url ?? undefined} target="_blank" rel="noopener noreferrer">
+              {a.title}
+            </a>{" "}
+            <span class="muted">
+              · {formatDate(a.publishedAt)}
+              {a.cves.length > 0 && ` · ${count(a.cves.length, "CVE", "CVEs")}`}
+            </span>
+            {a.kevCves.length > 0 && <span class="badge badge-ransomware"> KEV</span>}
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+function HeadlineItem({ h }: { h: Headline }) {
+  return (
+    <li class="headline">
+      <div>
+        <a class="card-link" href={h.url ?? undefined} target="_blank" rel="noopener noreferrer">
+          {h.title}
+        </a>
+      </div>
+      <p class="meta">
+        {h.sourceName} · {shortTime(h.publishedAt)}
+      </p>
+      {h.summary && <p class="card-desc">{h.summary}</p>}
+      <CveList cves={h.cves} kevCves={h.kevCves} />
+    </li>
+  );
+}
+
 function SourceLine({ s }: { s: SourceStatus }) {
   if (!s.lastSuccessAt && !s.error) return <li>{s.name}: not fetched yet</li>;
   return (
@@ -104,13 +205,19 @@ function SourceLine({ s }: { s: SourceStatus }) {
 
 export function BriefingPage({ b }: { b: Briefing }) {
   const newCount = b.exploited.filter((v) => v.isNew).length;
+  const ics = b.advisories.filter((a) => a.kind === "ics");
+  const advisories = b.advisories.filter((a) => a.kind !== "ics");
+  const newAdvisories = advisories.filter((a) => a.isNew).length;
   return (
     <Layout title={`sitrep · ${formatDate(b.today)}`}>
       <header>
         <h1>sitrep · {formatDate(b.today)}</h1>
         <p class="muted">
-          {newCount === 1 ? "1 new exploited vulnerability" : `${newCount} new exploited vulnerabilities`} since{" "}
-          {formatDate(b.newSince)}
+          Since {formatDate(b.newSince)}: {count(newCount, "new exploited vulnerability", "new exploited vulnerabilities")}
+          {" · "}
+          {count(newAdvisories, "new advisory", "new advisories")}
+          {" · "}
+          {count(b.headlines.filter((h) => h.isNew).length, "headline", "headlines")}
         </p>
       </header>
 
@@ -125,6 +232,43 @@ export function BriefingPage({ b }: { b: Briefing }) {
           <ul class="cards">
             {b.exploited.map((v) => (
               <VulnCard v={v} today={b.today} />
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section>
+        <h2>
+          Advisories <span class="muted">· CISA, since {formatDate(b.windowStart)}</span>
+        </h2>
+        {advisories.length === 0 && ics.length === 0 ? (
+          <p class="muted">No CISA advisories in this window.</p>
+        ) : (
+          <>
+            {advisories.length > 0 ? (
+              <ul class="cards">
+                {advisories.map((a) => (
+                  <AdvisoryCard a={a} />
+                ))}
+              </ul>
+            ) : (
+              <p class="muted">No cybersecurity advisories or alerts in this window.</p>
+            )}
+            <IcsList items={ics} />
+          </>
+        )}
+      </section>
+
+      <section>
+        <h2>
+          Headlines <span class="muted">· since {shortTime(b.headlinesSince)}</span>
+        </h2>
+        {b.headlines.length === 0 ? (
+          <p class="muted">No headlines in this window.</p>
+        ) : (
+          <ul class="headlines">
+            {b.headlines.map((h) => (
+              <HeadlineItem h={h} />
             ))}
           </ul>
         )}

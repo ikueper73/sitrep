@@ -10,6 +10,7 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 - GitHub repo created (public), `main` protected, `dev` is the working branch.
 - Worker scaffolded: Hono + TypeScript + Vitest, Access JWT middleware (fails closed, covers static assets), placeholder page and `/api/briefing`, hourly cron stub, D1 binding with placeholder ID. 
 - CISA KEV done end to end: hourly cron fetch (ETag/Last-Modified), D1 upsert (writes only changed rows), "Actively exploited" section on the page and in `/api/briefing`, source-status footer. Verified against the live feed locally. 24 tests passing.
+- RSS sources done on `dev` (not yet deployed): CISA advisories (ICS collapsed, KEV-addition alerts dropped), BleepingComputer, The Record, SANS ISC (Stormcast dropped). New "Advisories" and "Headlines" sections; CVE mentions marked when in KEV. 56 tests; verified against live feeds.
 - EPSS + NVD enrichment done on `dev` (not yet deployed): CVSS pill, EPSS likelihood, CISA SSVC "Automatable" badge; list ranked by exploit likelihood. Migration 0002 adds `cve_enrichment`; `npm run deploy` now applies migrations first. 37 tests passing; verified against the live APIs locally.
 - **Deployed** to https://sitrep.kueper.cloud behind Cloudflare Access. First production cron (2026-10-13 12:00 UTC) stored all 1,739 KEV entries with no errors on the Workers Free plan. Deploys are run by the user (`npm run deploy`); Claude's auto mode blocks them.
 - Cloudflare Access application created for sitrep.kueper.cloud (team `kueper.cloudflareaccess.com`); team domain and AUD in `wrangler.jsonc`.
@@ -21,12 +22,13 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 
 ## Next steps
 
-1. Shared RSS adapter: CISA advisories, BleepingComputer, The Record, SANS ISC.
-2. ransomware.live adapter.
+1. ransomware.live adapter.
+2. Deploy (user runs `npm run deploy`; applies migration 0002 first), then check the CPU-time metric for the hourly cron.
 3. Optional: request a free NVD API key and set it with `npx wrangler secret put NVD_API_KEY` (faster NVD backfill).
 
 ## Open questions
 
+- Cross-source dedup of the same story (e.g. BleepingComputer and The Record both covered the French supermarket attack).
 - Product watchlist (vendors/products in the team's stack to highlight) — revisit after KEV works.
 
 ## Log
@@ -41,3 +43,4 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 - 2026-10-13: Custom domain and Cloudflare Access configured.
 - 2026-10-13: First production deploy; full KEV ingest fits the Free plan CPU limit.
 - 2026-10-13: EPSS + NVD enrichment. Found that test storage isn't isolated per test; added reset() before each test. Set `dev.host` so the localhost dev bypass works with a custom-domain route.
+- 2026-10-13: Shared RSS parser + 4 feeds. CISA feed parse optimized from ~27 ms to ~3 ms CPU (decode description head only).
