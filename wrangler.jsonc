@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sitrep",
+  "main": "src/index.tsx",
+  "compatibility_date": "2026-10-01",
+  "observability": { "enabled": true },
+
+  // The site sits behind Cloudflare Access on a custom domain. Keep the
+  // workers.dev and preview URLs off so they can't bypass the login.
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "sitrep.kueper.cloud", "custom_domain": true }],
+
+  // wrangler dev would otherwise rewrite request URLs to the route's host,
+  // and the localhost-only DEV_BYPASS_ACCESS check would never match.
+  "dev": { "host": "localhost" },
+
+  // run_worker_first: every request, including static files, goes through
+  // the Access check in src/access.ts before assets are served.
+  "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": true },
+
+  // Hourly ingestion. Adapters decide individually whether a refetch is due.
+  "triggers": { "crons": ["0 * * * *"] },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sitrep",
+      "database_id": "14629db1-3210-4df1-be8f-99097dc4a574",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  "vars": {
+    // Cloudflare Access team domain, e.g. "yourteam.cloudflareaccess.com",
+    // and the Access application's AUD tag. Fill in when Access is set up.
+    "ACCESS_TEAM_DOMAIN": "kueper.cloudflareaccess.com",
+    "ACCESS_AUD": "4aea83f57bfea82b09492bc3f8916063d193d88b09dcac44c513b14f9191d1d8"
+  }
+}

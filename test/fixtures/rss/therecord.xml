@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+    <channel>
+        <title>The Record from Recorded Future News</title>
+        <link>https://therecord.media/feed</link>
+        <description>The Record by Recorded Future News gives exclusive, behind-the-scenes access to leaders, policymakers, researchers, and the shadows of the cyber underground.</description>
+        <lastBuildDate>Tue, 13 Oct 2026 12:00:00 GMT</lastBuildDate>
+        <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+        <generator>The Record from Recorded Future News</generator>
+        <language>en</language>
+        <copyright>Copyright © 2026 | The Record from Recorded Future News</copyright>
+        <item>
+            <title><![CDATA[Cyber incident hits grocery stores in US, Netherlands and Belgium]]></title>
+            <link>https://therecord.media/cyberattack-groceru-ahold-delhaize</link>
+            <guid>https://therecord.media/cyberattack-groceru-ahold-delhaize</guid>
+            <pubDate>Tue, 13 Oct 2026 12:00:00 GMT</pubDate>
+            <description><![CDATA[Ahold Delhaize, the Dutch multinational retailer, announced it was taking precautionary measures following a cybersecurity incident, with stores in the U.S., Netherlands and Belgium reportedly impacted.]]></description>
+            <category>News</category>
+            <category>News Briefs</category>
+            <category>Cybercrime</category>
+            <enclosure url="http://cms.therecord.media/uploads/Stop_and_shop_b4e4f10897.jpg" length="0" type="image/jpg"/>
+        </item>
+<item>
+            <title><![CDATA[Ukraine strikes third Yandex data center, disrupting digital services across Russia]]></title>
+            <link>https://therecord.media/ukraine-strikes-third-yandex-data-center</link>
+            <guid>https://therecord.media/ukraine-strikes-third-yandex-data-center</guid>
+            <pubDate>Mon, 12 Oct 2026 12:00:00 GMT</pubDate>
+            <description><![CDATA[A third Yandex data center in Russia was hit by Ukrainian drones over the weekend, forcing it to shut down and causing further disruptions to cloud services, payments, deliveries and other online services across the country.]]></description>
+            <category>News</category>
+            <category>Government</category>
+            <enclosure url="http://cms.therecord.media/uploads/CC_BY_SA_4_0_f779bf650c.png" length="0" type="image/png"/>
+        </item>
+<item>
+            <title><![CDATA[Cyberattack disrupts refrigeration at hundreds of French supermarkets]]></title>
+            <link>https://therecord.media/cyberattack-disrupts-refridgeration-in-france</link>
+            <guid>https://therecord.media/cyberattack-disrupts-refridgeration-in-france</guid>
+            <pubDate>Sun, 11 Oct 2026 23:00:00 GMT</pubDate>
+            <description><![CDATA[A cyberattack overnight Sunday disrupted refrigerators at hundreds of French supermarkets, spoiling fresh food at stores run by some of the country’s largest grocery chains.]]></description>
+            <category>News Briefs</category>
+            <category>Government</category>
+            <enclosure url="http://cms.therecord.media/uploads/CC_BY_2_0_11a0e3277d.png" length="0" type="image/png"/>
+        </item>
+<item>
+            <title><![CDATA[Japan confirms arrest of Russian Qilin operative, extradition to Germany]]></title>
+            <link>https://therecord.media/japan-germany-ransomware-arrest</link>
+            <guid>https://therecord.media/japan-germany-ransomware-arrest</guid>
+            <pubDate>Fri, 09 Oct 2026 18:45:00 GMT</pubDate>
+            <description><![CDATA[Japan’s National Police Agency confirmed the arrest and extradition to Germany of a Russian national accused of being involved in the Qilin ransomware gang.]]></description>
+            <category>News</category>
+            <category>News Briefs</category>
+            <category>Cybercrime</category>
+            <category>Malware</category>
+            <enclosure url="http://cms.therecord.media/uploads/getty_images_AT_72v_KLZ_6_Rk_unsplash_6e316d153d.jpg" length="0" type="image/jpg"/>
+        </item>
+<item>
+            <title><![CDATA[Hundreds of thousands impacted by data breach at biosensor firm iRhythm]]></title>
+            <link>https://therecord.media/irhythm-data-breach-reports</link>
+            <guid>https://therecord.media/irhythm-data-breach-reports</guid>
+            <pubDate>Fri, 09 Oct 2026 16:06:00 GMT</pubDate>
+            <description><![CDATA[A company known for wearable cardiac sensors, iRhythm, has begun notifying states of the impact of a data breach from the summer.]]></description>
+            <category>Industry</category>
+            <category>News</category>
+            <category>Cybercrime</category>
+            <enclosure url="http://cms.therecord.media/uploads/irhythm_zio_b2d3ad957a.jpg" length="0" type="image/jpg"/>
+        </item>
+    </channel>
+</rss><!-- generated at 2026-10-13T12:35:52.729Z -->

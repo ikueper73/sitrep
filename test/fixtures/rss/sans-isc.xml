@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="/css/rss.css" type="text/css"?>
+<rss version="2.0" 
+    xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+>
+<channel>
+<atom:link href="https://isc.sans.edu/rssfeed.xml" rel="self" type="application/rss+xml" />
+<title>SANS Internet Storm Center, InfoCON: green</title>
+<atom:link href="https://isc.sans.edu/rssfeed.xml" rel="self" type="application/rss+xml" /><link>https://isc.sans.edu</link><description><![CDATA[SANS Internet Storm Center - Cooperative Cyber Security Monitor]]></description><language>   en-us</language><lastBuildDate>   Tue, 13 Oct 2026 12:35:03 +0000</lastBuildDate><pubDate>Tue, 13 Oct 2026 02:00:02 GMT</pubDate><copyright>(C) SANS Institute 2026</copyright>
+             <generator>isc rss feed maker</generator>
+             <ttl>30</ttl>
+             <webMaster>handlers@sans.org (ISC Handlers)</webMaster>
+             <image>
+               <title>SANS Internet Storm Center, InfoCON: green</title>
+               <url>https://isc.sans.edu/images/status.gif</url>
+               <link>https://isc.sans.edu</link>
+             </image>
+  <item>
+    <title><![CDATA[ISC Stormcast For Tuesday, October 13th, 2026 https://isc.sans.edu/podcastdetail/10134, (Tue, Oct 13th)]]></title>
+    <link>https://isc.sans.edu/diary/rss/33418</link>    <guid>https://isc.sans.edu/diary/rss/33418</guid>    <pubDate>Tue, 13 Oct 2026 02:00:02 GMT</pubDate>  </item>
+<item>
+    <title><![CDATA[ISC Stormcast For Monday, October 12th, 2026 https://isc.sans.edu/podcastdetail/10132, (Mon, Oct 12th)]]></title>
+    <link>https://isc.sans.edu/diary/rss/33416</link>    <guid>https://isc.sans.edu/diary/rss/33416</guid>    <pubDate>Mon, 12 Oct 2026 02:00:03 GMT</pubDate>  </item>
+<item>
+    <title><![CDATA[Why TLP should not replace your internal information classification, (Sat, Oct 10th)]]></title>
+    <link>https://isc.sans.edu/diary/rss/33414</link>    <guid>https://isc.sans.edu/diary/rss/33414</guid><description><![CDATA[ The Traffic Light Protocol (TLP)&#x5b;1&#x5d;, which is now in its second incarnation, is a wonderful standard that enables one to easily communicate whether information may be shared further (and if so, how far).&#xd;]]></description><content:encoded><![CDATA[The Traffic Light Protocol (TLP)[1], which is now in its second incarnation, is a wonderful standard that enables one to easily communicate whether information may be shared further (and if so, how far).]]></content:encoded>    <pubDate>Sat, 10 Oct 2026 09:11:34 GMT</pubDate>  </item>
+<item>
+    <title><![CDATA[ISC Stormcast For Friday, October 9th, 2026 https://isc.sans.edu/podcastdetail/10130, (Fri, Oct 9th)]]></title>
+    <link>https://isc.sans.edu/diary/rss/33412</link>    <guid>https://isc.sans.edu/diary/rss/33412</guid>    <pubDate>Fri, 09 Oct 2026 07:52:03 GMT</pubDate>  </item>
+<item>
+    <title><![CDATA[Reconstructing AI Agent Activity: Two New Scripts for Forensic Review, (Thu, Oct 8th)]]></title>
+    <link>https://isc.sans.edu/diary/rss/33410</link>    <guid>https://isc.sans.edu/diary/rss/33410</guid><description><![CDATA[ We just did a major update to FOR577 and added a lot of new material on day 5 about investigating AI usage in incident response. In the new material we dicsuss 8&&#x23&#x3b;x26&#x3b;&#x23&#x3b;xc2&#x3b;&&#x23&#x3b;x26&#x3b;&#x23&#x3b;xa0&#x3b;of the most popular AI coding assistants and&&#x23&#x3b;x26&#x3b;&#x23&#x3b;xc2&#x3b;&&#x23&#x3b;x26&#x3b;&#x23&#x3b;xa0&#x3b;agents including Claude Code, Codex, Gemini CLI, Cursor, Copilot, Warp, Windsurf, and Qwen Code. I&&#x23&#x3b;x26&#x3b;&#x23&#x3b;39&#x3b;ve been using Claude Code and a little bit of Codex, but I also have recently been playing with OpenCode and am setting up Hermes. I decided to figure out where the chat history was in OpenCode and where any Hermes evidence might be located.&#xd;]]></description><content:encoded><![CDATA[We just did a major update to FOR577 and added a lot of new material on day 5 about investigating AI usage in incident response. In the new material we dicsuss 8&nbsp;of the most popular AI coding assistants and&nbsp;agents including Claude Code, Codex, Gemini CLI, Cursor, Copilot, Warp, Windsurf, and Qwen Code. I&#39;ve been using Claude Code and a little bit of Codex, but I also have recently been playing with OpenCode and am setting up Hermes. I decided to figure out where the chat history was in OpenCode and where any Hermes evidence might be located.]]></content:encoded>    <pubDate>Thu, 08 Oct 2026 16:52:53 GMT</pubDate>  </item>
+<item>
+    <title><![CDATA[ISC Stormcast For Thursday, October 8th, 2026 https://isc.sans.edu/podcastdetail/10128, (Thu, Oct 8th)]]></title>
+    <link>https://isc.sans.edu/diary/rss/33408</link>    <guid>https://isc.sans.edu/diary/rss/33408</guid>    <pubDate>Thu, 08 Oct 2026 02:00:02 GMT</pubDate>  </item></channel>
+</rss>

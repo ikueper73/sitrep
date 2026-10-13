@@ -1,0 +1,12 @@
+# Copy to .dev.vars for local development. Never commit .dev.vars.
+# Skips the Cloudflare Access check. Only honoured by `wrangler dev`
+# (local mode); never set this as a deployed variable or secret.
+DEV_BYPASS_ACCESS=true
+
+# Optional: NVD API key (free, https://nvd.nist.gov/developers/request-an-api-key).
+# In production set it with `npx wrangler secret put NVD_API_KEY`.
+# NVD_API_KEY=
+
+# ransomware.live PRO API key (free, https://my.ransomware.live). Without it the
+# source shows "API key not set". In production: `npx wrangler secret put RANSOMWARE_LIVE_API_KEY`.
+# RANSOMWARE_LIVE_API_KEY=
