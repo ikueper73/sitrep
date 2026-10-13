@@ -23,7 +23,6 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 1. Enrich CVEs with EPSS scores and NVD details.
 2. Shared RSS adapter: CISA advisories, BleepingComputer, The Record, SANS ISC.
 3. ransomware.live adapter.
-4. Deploy (`npm run deploy`, run by the user — Claude's auto mode blocks production deploys), then set up Cloudflare Access (Zero Trust dashboard) before the first public deploy; fill `ACCESS_TEAM_DOMAIN` / `ACCESS_AUD`; attach a custom domain (`workers_dev` and preview URLs are already off).
 
 ## Open questions
 
