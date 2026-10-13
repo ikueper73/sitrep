@@ -21,8 +21,7 @@
     {
       "binding": "DB",
       "database_name": "sitrep",
-      // Placeholder until `wrangler d1 create sitrep` is run against the account.
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "14629db1-3210-4df1-be8f-99097dc4a574",
       "migrations_dir": "migrations"
     }
   ],
