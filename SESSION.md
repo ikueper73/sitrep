@@ -22,11 +22,17 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 
 ## Next steps
 
-1. ransomware.live adapter.
+1. ransomware.live adapter — **blocked on a decision, see Open questions.**
 2. Deploy (user runs `npm run deploy`; applies migration 0002 first), then check the CPU-time metric for the hourly cron.
 3. Optional: request a free NVD API key and set it with `npx wrangler secret put NVD_API_KEY` (faster NVD backfill).
 
 ## Open questions
+
+- **ransomware.live terms (checked 2026-10-13):**
+  - The free keyless API (v2) is "personal use only, not for corporate or business use", rate-limited to 1 req/min, and frozen.
+  - The PRO API (`https://api-pro.ransomware.live`, header `X-API-KEY`, free key from my.ransomware.live) is the supported route. `GET /victims/recent` returns the 100 most recent victims (`victim`, `group`, `attackdate`, `discovered`, `country`, `activity`, `website`, `press`, `permalink`).
+  - T&C: no polling more often than every 30 min (hourly is fine); attribution "Source: Ransomware.live" with a link wherever the data is shown; no re-serving the data as an API or feed to third parties.
+  - **Commercial use is "strictly prohibited without prior written approval"** (products, paid services, monetisation). Whether a company's internal SecOps standup counts is for the user to decide, possibly by asking ransomware.live.
 
 - Cross-source dedup of the same story (e.g. BleepingComputer and The Record both covered the French supermarket attack).
 - Product watchlist (vendors/products in the team's stack to highlight) — revisit after KEV works.
