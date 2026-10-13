@@ -1,5 +1,8 @@
-import { exports } from "cloudflare:workers";
+import { env, exports } from "cloudflare:workers";
 import { describe, expect, it } from "vitest";
+import { runIngestion } from "../src/ingest";
+import { kev } from "../src/sources/kev";
+import { fakeFeed, kevFixture } from "./helpers";
 
 describe("access control", () => {
   // DEV_BYPASS_ACCESS is on in vitest.config.ts, so these also prove the
@@ -34,9 +37,19 @@ describe("routes", () => {
     expect(res.status).toBe(200);
   });
 
-  it("returns an empty briefing", async () => {
+  it("returns the briefing as JSON", async () => {
     const res = await exports.default.fetch("http://localhost:8787/api/briefing");
     expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ items: [] });
+    expect(await res.json()).toMatchObject({ exploited: [], sources: [{ id: "kev" }] });
+  });
+
+  it("renders the briefing page with source status", async () => {
+    await runIngestion(env.DB, fakeFeed(kevFixture), [kev]);
+    const res = await exports.default.fetch("http://localhost:8787/");
+    const html = await res.text();
+    expect(res.status).toBe(200);
+    expect(html).toContain("Actively exploited");
+    // Date-independent: the fixture's entries may fall outside today's window.
+    expect(html).toContain("CISA KEV (catalog 2026.10.08)");
   });
 });
