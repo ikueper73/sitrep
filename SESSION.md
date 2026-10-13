@@ -10,7 +10,7 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 - GitHub repo created (public), `main` protected, `dev` is the working branch.
 - Worker scaffolded: Hono + TypeScript + Vitest, Access JWT middleware (fails closed, covers static assets), placeholder page and `/api/briefing`, hourly cron stub, D1 binding with placeholder ID. 
 - CISA KEV done end to end: hourly cron fetch (ETag/Last-Modified), D1 upsert (writes only changed rows), "Actively exploited" section on the page and in `/api/briefing`, source-status footer. Verified against the live feed locally. 24 tests passing.
-- ransomware.live adapter on `dev`: PRO API, "Ransomware activity" section (since last standup, US victims first, top groups, required attribution). Without a key the source footer shows "API key not set". 65 tests.
+- ransomware.live adapter on `dev`: PRO API, "Ransomware activity" section (since last standup, US victims first, top groups, required attribution). Without a key the source footer shows "API key not set". 65 tests. Verified locally with the user's key: 100/100 victims parsed (2026-10-13); /victims/recent covers ~1–2 days, so hourly polling + stored history is what covers weekends.
 - RSS sources done on `dev` (not yet deployed): CISA advisories (ICS collapsed, KEV-addition alerts dropped), BleepingComputer, The Record, SANS ISC (Stormcast dropped). New "Advisories" and "Headlines" sections; CVE mentions marked when in KEV. 56 tests; verified against live feeds.
 - EPSS + NVD enrichment done on `dev` (not yet deployed): CVSS pill, EPSS likelihood, CISA SSVC "Automatable" badge; list ranked by exploit likelihood. Migration 0002 adds `cve_enrichment`; `npm run deploy` now applies migrations first. 37 tests passing; verified against the live APIs locally.
 - **Deployed** to https://sitrep.kueper.cloud behind Cloudflare Access. First production cron (2026-10-13 12:00 UTC) stored all 1,739 KEV entries with no errors on the Workers Free plan. Deploys are run by the user (`npm run deploy`); Claude's auto mode blocks them.
@@ -23,8 +23,8 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 
 ## Next steps
 
-1. ransomware.live: adapter + "Ransomware activity" section built and tested against a synthetic fixture. **Waiting for the user's free PRO key** (my.ransomware.live): user adds it to `.dev.vars` and runs `npx wrangler secret put RANSOMWARE_LIVE_API_KEY`. Then: check field formats (`discovered`, `country`, `activity`) against one live response locally, without committing it.
-2. Deploy (user runs `npm run deploy`; applies migration 0002 first), then check the CPU-time metric for the hourly cron.
+1. Deploy: user runs `npx wrangler secret put RANSOMWARE_LIVE_API_KEY`, then `npm run deploy` (applies migration 0002 first). Afterwards check the CPU-time metric for the hourly cron (all sources now run in one invocation).
+2. Merge `dev` → `main` via PR once production looks good.
 3. Optional: request a free NVD API key and set it with `npx wrangler secret put NVD_API_KEY` (faster NVD backfill).
 
 ## Open questions
