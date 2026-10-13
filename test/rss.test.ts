@@ -11,9 +11,9 @@ import {
   safeUrl,
   truncate,
 } from "../src/sources/rss";
-import bleepingXml from "./fixtures/rss/bleepingcomputer.xml?raw";
 import cisaXml from "./fixtures/rss/cisa.xml?raw";
 import sansXml from "./fixtures/rss/sans-isc.xml?raw";
+import thnXml from "./fixtures/rss/thehackernews.xml?raw";
 import therecordXml from "./fixtures/rss/therecord.xml?raw";
 
 const feed = (id: string) => feeds.find((f) => f.id === id)!;
@@ -90,15 +90,17 @@ describe("feeds (real-data fixtures)", () => {
     expect(advisory.summary).toMatch(/^Chinese government-linked cyber/i);
   });
 
-  it("BleepingComputer: parses all items with offsets", () => {
-    const { items } = parseFeed(feed("bleepingcomputer"), bleepingXml);
-    expect(items).toHaveLength(6);
+  it("The Hacker News: parses +0530 offsets and drops promotional posts", () => {
+    const { items } = parseFeed(feed("thehackernews"), thnXml);
+    // 7 items in the fixture, minus one [Webinar] and one Product Walkthrough.
+    expect(items).toHaveLength(5);
+    expect(items.some((i) => /^\[Webinar\]|^Product Walkthrough/i.test(i.title))).toBe(false);
     expect(items[0]).toMatchObject({
       type: "news",
-      title: "Norway fines Microsoft ad firm $9.6 million over Grindr data sharing",
-      publishedAt: "2026-10-12T20:13:52.000Z",
+      title: "LG Smart TVs Vulnerable to Pre-Auth Root Takeover From Local Network",
+      publishedAt: "2026-10-13T11:09:10.000Z",
     });
-    expect(items[0]!.url).toMatch(/^https:\/\/www\.bleepingcomputer\.com\//);
+    expect(items[0]!.url).toMatch(/^https:\/\/thehackernews\.com\//);
   });
 
   it("The Record: parses all items", () => {

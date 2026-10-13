@@ -36,10 +36,18 @@ export const feeds: FeedConfig[] = [
     },
   },
   {
-    id: "bleepingcomputer",
-    name: "BleepingComputer",
-    url: "https://www.bleepingcomputer.com/feed/",
+    // Replaced BleepingComputer, which blocks requests from Cloudflare Workers (403).
+    // Served via FeedBurner (Google), so it isn't subject to that block.
+    id: "thehackernews",
+    name: "The Hacker News",
+    url: "https://feeds.feedburner.com/TheHackersNews",
     type: "news",
+    transform(item) {
+      // Drop promotional posts: "[Webinar] …", "[Sponsored] …", "Product Walkthrough: …".
+      if (/^\[(webinar|sponsored|ebook|whitepaper|guide|free guide)\]/i.test(item.title)) return null;
+      if (/^product walkthrough:/i.test(item.title)) return null;
+      return item;
+    },
   },
   {
     id: "therecord",

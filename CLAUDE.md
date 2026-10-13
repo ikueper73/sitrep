@@ -34,7 +34,7 @@ The team is US-based, so US government sources take priority.
 | 2 | FIRST EPSS | Enrichment: exploit-probability score per CVE | Public API |
 | 2 | NVD CVE API 2.0 | Enrichment: CVSS, description, affected products for CVEs already in the briefing (do not ingest every new CVE) | Public; optional free API key for higher rate limits |
 | 3 | CISA advisories (cybersecurity + ICS) | "Advisories" section | RSS |
-| 3 | BleepingComputer, The Record, SANS ISC diary | "Headlines" section | RSS |
+| 3 | The Hacker News, The Record, SANS ISC diary | "Headlines" section | RSS |
 | 4 | ransomware.live | "Ransomware activity" section | Public API (check free-tier terms) |
 
 All RSS feeds go through one shared parser/adapter. Each step must leave a working, usable briefing.
@@ -99,6 +99,7 @@ The whole cron run (all sources + enrichment) shares one 10 ms CPU budget. CISA'
 
 - `src/index.tsx` — Hono app (routes) and the `scheduled` handler
 - `src/sources/` — one adapter per source (`kev.ts`), shared `http.ts` (User-Agent, conditional GET), `types.ts`
+- Feeds must be reachable from Cloudflare Workers: some sites behind Cloudflare block Worker requests (BleepingComputer returns 403 from Workers, 200 elsewhere). Respect such blocks; don't proxy or disguise requests. Prefer feeds not served via Cloudflare, and check the source footer after deploying a new feed.
 - `src/sources/rss.ts` — shared RSS 2.0 parser (regex-based; Workers has no XML parser) and `rssAdapter()`; `feeds.ts` — per-feed config and filters
 - `src/ingest.ts` — runs all adapters independently; `adapters` list registers sources
 - `src/enrich/` — per-CVE enrichment after ingest: `epss.ts`, `nvd.ts` (CVSS + CISA SSVC), `index.ts` (what's due, rate-limit caps)
@@ -114,7 +115,7 @@ The whole cron run (all sources + enrichment) shares one 10 ms CPU budget. CISA'
 ## Decisions
 
 - Hosting: a single Cloudflare Worker with static assets (not Pages). Reason: needs Cron Triggers for ingestion, keeps cron + API + frontend in one deployable, and is Cloudflare's recommended path for new projects.
-- v1 sources and build order: KEV → EPSS + NVD enrichment → RSS feeds (shared parser: CISA advisories, BleepingComputer, The Record, SANS ISC) → ransomware.live. Team is US-based; no non-US government feeds in v1.
+- v1 sources and build order: KEV → EPSS + NVD enrichment → RSS feeds (shared parser: CISA advisories, The Hacker News, The Record, SANS ISC) → ransomware.live. Team is US-based; no non-US government feeds in v1.
 - Web framework: Hono, with server-rendered pages (Hono JSX). Reason: one lightweight framework for API + UI on Workers; a read-mostly briefing doesn't need a client-side SPA.
 - Access: Cloudflare Access in front of the site, plus JWT verification in the Worker. Reason: data is public, but the product watchlist reveals the team's stack.
 - Production URL: https://sitrep.kueper.cloud (Worker custom domain; `workers.dev` and preview URLs disabled).

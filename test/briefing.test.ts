@@ -5,9 +5,9 @@ import { previousBusinessDay, teamDate } from "../src/dates";
 import { runIngestion } from "../src/ingest";
 import { kev } from "../src/sources/kev";
 import { feedAdapters } from "../src/sources/feeds";
-import bleepingXml from "./fixtures/rss/bleepingcomputer.xml?raw";
 import cisaXml from "./fixtures/rss/cisa.xml?raw";
 import sansXml from "./fixtures/rss/sans-isc.xml?raw";
+import thnXml from "./fixtures/rss/thehackernews.xml?raw";
 import therecordXml from "./fixtures/rss/therecord.xml?raw";
 import { fakeFeed, kevFixture } from "./helpers";
 
@@ -50,7 +50,7 @@ describe("buildBriefing", () => {
     await runIngestion(env.DB, fakeFeed(kevFixture), [kev]);
     const b = await buildBriefing(env.DB, standup);
     expect(b.sources.map((s) => s.id)).toEqual([
-      "kev", "cisa", "bleepingcomputer", "therecord", "sans-isc", "ransomware-live", "epss", "nvd",
+      "kev", "cisa", "thehackernews", "therecord", "sans-isc", "ransomware-live", "epss", "nvd",
     ]);
     expect(b.sources[0]).toMatchObject({ name: "CISA KEV", version: "2026.10.08", error: null });
   });
@@ -63,7 +63,7 @@ describe("advisories and headlines", () => {
   async function seed() {
     const bodies: Record<string, string> = {
       "www.cisa.gov": cisaXml,
-      "www.bleepingcomputer.com": bleepingXml,
+      "feeds.feedburner.com": thnXml,
       "therecord.media": therecordXml,
       "isc.sans.edu": sansXml,
     };
@@ -76,8 +76,8 @@ describe("advisories and headlines", () => {
     await seed();
     const b = await buildBriefing(env.DB, tuesday);
     expect(b.headlinesSince).toBe("2026-10-12T04:00:00.000Z");
-    // Bleeping: 6 on Mon Oct 12 (US time); The Record: Oct 13 + Oct 12; SANS: nothing since Sat.
-    expect(b.headlines).toHaveLength(8);
+    // The Hacker News: 5 on Oct 13 (after dropping 2 promos); The Record: Oct 13 + Oct 12; SANS: nothing since Sat.
+    expect(b.headlines).toHaveLength(7);
     expect(b.headlines.every((h) => h.isNew)).toBe(true);
     expect(b.headlines[0]).toMatchObject({ sourceName: "The Record", title: expect.stringContaining("grocery") });
   });
@@ -85,7 +85,7 @@ describe("advisories and headlines", () => {
   it("widens headlines with an explicit window", async () => {
     await seed();
     const b = await buildBriefing(env.DB, tuesday, 7);
-    expect(b.headlines.length).toBeGreaterThan(8);
+    expect(b.headlines.length).toBeGreaterThan(7);
     expect(b.headlines.some((h) => h.sourceName === "SANS ISC" && !h.isNew)).toBe(true);
   });
 

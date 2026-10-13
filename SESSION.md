@@ -10,6 +10,7 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 - GitHub repo created (public), `main` protected, `dev` is the working branch.
 - Worker scaffolded: Hono + TypeScript + Vitest, Access JWT middleware (fails closed, covers static assets), placeholder page and `/api/briefing`, hourly cron stub, D1 binding with placeholder ID. 
 - CISA KEV done end to end: hourly cron fetch (ETag/Last-Modified), D1 upsert (writes only changed rows), "Actively exploited" section on the page and in `/api/briefing`, source-status footer. Verified against the live feed locally. 24 tests passing.
+- BleepingComputer replaced by The Hacker News (FeedBurner): BleepingComputer returns 403 to requests from Cloudflare Workers (their block; not worked around). THN promos ([Webinar], Product Walkthrough) are filtered.
 - UI polish on `dev`: collapsible sections with standup step-through (Next/Prev, keys, `/#section` links), new palette + Barlow fonts, light/dark. Federal due dates no longer shown in red (they bind US federal agencies, not the team).
 - ransomware.live adapter on `dev`: PRO API, "Ransomware activity" section (since last standup, US victims first, top groups, required attribution). Without a key the source footer shows "API key not set". 65 tests. Verified locally with the user's key: 100/100 victims parsed (2026-10-13); /victims/recent covers ~1–2 days, so hourly polling + stored history is what covers weekends.
 - RSS sources done on `dev` (not yet deployed): CISA advisories (ICS collapsed, KEV-addition alerts dropped), BleepingComputer, The Record, SANS ISC (Stormcast dropped). New "Advisories" and "Headlines" sections; CVE mentions marked when in KEV. 56 tests; verified against live feeds.
@@ -51,6 +52,7 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 - 2026-10-13: Custom domain and Cloudflare Access configured.
 - 2026-10-13: First production deploy; full KEV ingest fits the Free plan CPU limit.
 - 2026-10-13: EPSS + NVD enrichment. Found that test storage isn't isolated per test; added reset() before each test. Set `dev.host` so the localhost dev bypass works with a custom-domain route.
+- 2026-10-13: Production showed BleepingComputer 403 (blocks Workers); swapped in The Hacker News.
 - 2026-10-13: UI polish: collapsible sections, step-through controls, new palette/fonts.
 - 2026-10-13: ransomware.live adapter (non-commercial use confirmed by the user; PRO API; synthetic fixture only, per T&C).
 - 2026-10-13: Shared RSS parser + 4 feeds. CISA feed parse optimized from ~27 ms to ~3 ms CPU (decode description head only).
