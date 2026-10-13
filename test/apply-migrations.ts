@@ -1,4 +1,10 @@
-import { applyD1Migrations } from "cloudflare:test";
+import { applyD1Migrations, reset } from "cloudflare:test";
 import { env } from "cloudflare:workers";
+import { beforeEach } from "vitest";
 
-await applyD1Migrations(env.DB, env.TEST_MIGRATIONS);
+// Storage is not isolated between tests automatically: wipe it and rebuild
+// the schema so every test starts from an empty database.
+beforeEach(async () => {
+  await reset();
+  await applyD1Migrations(env.DB, env.TEST_MIGRATIONS);
+});

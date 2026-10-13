@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { requireAccess } from "./access";
 import { buildBriefing, DEFAULT_WINDOW_DAYS } from "./briefing";
 import type { AppEnv, Bindings } from "./env";
+import { runEnrichment } from "./enrich";
 import { runIngestion } from "./ingest";
 import { BriefingPage } from "./views/Briefing";
 
@@ -31,9 +32,12 @@ export default {
 
   async scheduled(controller, env, ctx) {
     ctx.waitUntil(
-      runIngestion(env.DB).then((outcomes) =>
-        console.log(`cron ${controller.cron}: ${JSON.stringify(outcomes)}`),
-      ),
+      (async () => {
+        // Ingest first so newly added CVEs are enriched in the same run.
+        const ingested = await runIngestion(env.DB);
+        const enriched = await runEnrichment(env.DB, fetch, { nvdApiKey: env.NVD_API_KEY });
+        console.log(`cron ${controller.cron}: ${JSON.stringify({ ingested, enriched })}`);
+      })(),
     );
   },
 } satisfies ExportedHandler<Bindings>;

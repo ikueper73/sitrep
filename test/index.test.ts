@@ -40,7 +40,7 @@ describe("routes", () => {
   it("returns the briefing as JSON", async () => {
     const res = await exports.default.fetch("http://localhost:8787/api/briefing");
     expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ exploited: [], sources: [{ id: "kev" }] });
+    expect(await res.json()).toMatchObject({ exploited: [], sources: [{ id: "kev" }, { id: "epss" }, { id: "nvd" }] });
   });
 
   it("renders the briefing page with source status", async () => {

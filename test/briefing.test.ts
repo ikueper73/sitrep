@@ -44,8 +44,7 @@ describe("buildBriefing", () => {
   it("reports source status", async () => {
     await runIngestion(env.DB, fakeFeed(kevFixture), [kev]);
     const b = await buildBriefing(env.DB, standup);
-    expect(b.sources).toEqual([
-      expect.objectContaining({ id: "kev", name: "CISA KEV", version: "2026.10.08", error: null }),
-    ]);
+    expect(b.sources.map((s) => s.id)).toEqual(["kev", "epss", "nvd"]);
+    expect(b.sources[0]).toMatchObject({ name: "CISA KEV", version: "2026.10.08", error: null });
   });
 });

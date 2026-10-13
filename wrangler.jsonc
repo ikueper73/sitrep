@@ -11,6 +11,10 @@
   "preview_urls": false,
   "routes": [{ "pattern": "sitrep.kueper.cloud", "custom_domain": true }],
 
+  // wrangler dev would otherwise rewrite request URLs to the route's host,
+  // and the localhost-only DEV_BYPASS_ACCESS check would never match.
+  "dev": { "host": "localhost" },
+
   // run_worker_first: every request, including static files, goes through
   // the Access check in src/access.ts before assets are served.
   "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": true },

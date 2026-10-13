@@ -13,6 +13,38 @@ function formatTime(iso: string): string {
   }).format(new Date(iso));
 }
 
+function formatPercent(p: number): string {
+  const pct = p * 100;
+  return pct >= 10 ? `${pct.toFixed(0)}%` : pct >= 1 ? `${pct.toFixed(1)}%` : `${pct.toFixed(2)}%`;
+}
+
+function ordinal(n: number): string {
+  const s = n % 100 >= 11 && n % 100 <= 13 ? "th" : ({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[n % 10] ?? "th";
+  return `${n}${s}`;
+}
+
+function CvssPill({ cvss }: { cvss: NonNullable<ExploitedVuln["cvss"]> }) {
+  const sev = cvss.severity || "none";
+  const scoredBy = cvss.source === "nvd" ? "NVD" : cvss.source === "CISA-ADP" ? "CISA (ADP)" : `CNA (${cvss.source})`;
+  return (
+    <span class={`badge sev-${sev}`} title={`CVSS ${cvss.version}, scored by ${scoredBy}`}>
+      {cvss.score.toFixed(1)} {sev.toUpperCase()}
+    </span>
+  );
+}
+
+function EpssTag({ epss }: { epss: NonNullable<ExploitedVuln["epss"]> }) {
+  const pctile = Math.floor(epss.percentile * 100);
+  return (
+    <span
+      class={epss.score >= 0.1 ? "epss epss-high" : "epss"}
+      title={`FIRST EPSS: ${formatPercent(epss.score)} probability of exploitation activity in the next 30 days (${ordinal(pctile)} percentile)`}
+    >
+      EPSS {formatPercent(epss.score)}
+    </span>
+  );
+}
+
 function VulnCard({ v, today }: { v: ExploitedVuln; today: string }) {
   const overdue = v.dueDate !== null && v.dueDate < today;
   return (
@@ -25,7 +57,14 @@ function VulnCard({ v, today }: { v: ExploitedVuln; today: string }) {
         <span class="vendor">
           {v.vendor} {v.product}
         </span>
+        {v.cvss && <CvssPill cvss={v.cvss} />}
+        {v.epss && <EpssTag epss={v.epss} />}
         {v.ransomware && <span class="badge badge-ransomware">Ransomware use</span>}
+        {v.automatable && (
+          <span class="badge badge-automatable" title="CISA SSVC: exploitation can be automated">
+            Automatable
+          </span>
+        )}
       </div>
       <p class="card-title">{v.name}</p>
       {v.description && <p class="card-desc">{v.description}</p>}
@@ -77,7 +116,8 @@ export function BriefingPage({ b }: { b: Briefing }) {
 
       <section>
         <h2>
-          Actively exploited <span class="muted">· CISA KEV, added since {formatDate(b.windowStart)}</span>
+          Actively exploited{" "}
+          <span class="muted">· CISA KEV, added since {formatDate(b.windowStart)}, ranked by exploit likelihood</span>
         </h2>
         {b.exploited.length === 0 ? (
           <p class="muted">Nothing added to the KEV catalog in this window.</p>
