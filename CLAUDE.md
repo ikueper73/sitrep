@@ -79,7 +79,8 @@ The whole cron run (all sources + enrichment) shares one 10 ms CPU budget. CISA'
 
 ## Conventions
 
-- **Branches**: work on `dev`. `main` is protected: changes reach it only via pull request (`gh pr create --base main --head dev`). Never push to `main` directly or force-push.
+- **Branches**: work on `dev`. `main` is protected: changes reach it only via pull request (`gh pr create --base main --head dev`), merged with a merge commit (not squash), then fast-forward `dev` to `main`. Never push to `main` directly or force-push.
+- **Releases**: `main` is what runs in production. Try changes from `dev` locally; deploy (`npm run deploy`, run by the user) from `main` after merging.
 - **Access check**: `DEV_BYPASS_ACCESS=true` (in `.dev.vars` only) skips the JWT check, and only for `localhost` requests. Never set it as a deployed var or secret. Every new route must sit behind `requireAccess` (it is applied to `*`).
 - **Secrets**: API keys go in Wrangler secrets (`wrangler secret put`) and `.dev.vars` locally. `.dev.vars` must never be committed.
 - **Source adapters**: one module per source, each exporting a fetch + normalise function, with a unit test against a saved fixture of real output. Adapters must fail independently: one broken feed must not break the briefing.
