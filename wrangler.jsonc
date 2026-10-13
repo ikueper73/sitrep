@@ -30,7 +30,7 @@
   "vars": {
     // Cloudflare Access team domain, e.g. "yourteam.cloudflareaccess.com",
     // and the Access application's AUD tag. Fill in when Access is set up.
-    "ACCESS_TEAM_DOMAIN": "",
-    "ACCESS_AUD": ""
+    "ACCESS_TEAM_DOMAIN": "kueper.cloudflareaccess.com",
+    "ACCESS_AUD": "4aea83f57bfea82b09492bc3f8916063d193d88b09dcac44c513b14f9191d1d8"
   }
 }
