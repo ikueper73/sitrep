@@ -10,6 +10,7 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 - GitHub repo created (public), `main` protected, `dev` is the working branch.
 - Worker scaffolded: Hono + TypeScript + Vitest, Access JWT middleware (fails closed, covers static assets), placeholder page and `/api/briefing`, hourly cron stub, D1 binding with placeholder ID. 
 - CISA KEV done end to end: hourly cron fetch (ETag/Last-Modified), D1 upsert (writes only changed rows), "Actively exploited" section on the page and in `/api/briefing`, source-status footer. Verified against the live feed locally. 24 tests passing.
+- Custom domain `sitrep.kueper.cloud` configured in `wrangler.jsonc` (zone is on Cloudflare; goes live on next deploy).
 - Remote D1 database `sitrep` created (ENAM, ID in `wrangler.jsonc`), migration 0001 applied remotely. Wrangler logged in to the Cloudflare account. Not yet deployed.
 - Decided: Cloudflare Workers + static assets (not Pages).
 - Decided: Hono (server-rendered JSX) for API + UI; site behind Cloudflare Access with JWT verification in the Worker.

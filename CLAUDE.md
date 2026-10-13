@@ -93,4 +93,5 @@ Every adapter returns `NormalisedItem` ([src/sources/types.ts](src/sources/types
 - v1 sources and build order: KEV → EPSS + NVD enrichment → RSS feeds (shared parser: CISA advisories, BleepingComputer, The Record, SANS ISC) → ransomware.live. Team is US-based; no non-US government feeds in v1.
 - Web framework: Hono, with server-rendered pages (Hono JSX). Reason: one lightweight framework for API + UI on Workers; a read-mostly briefing doesn't need a client-side SPA.
 - Access: Cloudflare Access in front of the site, plus JWT verification in the Worker. Reason: data is public, but the product watchlist reveals the team's stack.
+- Production URL: https://sitrep.kueper.cloud (Worker custom domain; `workers.dev` and preview URLs disabled).
 - Public GitHub repo: `ikueper73/sitrep`; `main` protected, `dev` for work.
