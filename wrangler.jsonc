@@ -1,0 +1,36 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sitrep",
+  "main": "src/index.tsx",
+  "compatibility_date": "2026-10-01",
+  "observability": { "enabled": true },
+
+  // The site sits behind Cloudflare Access on a custom domain. Keep the
+  // workers.dev and preview URLs off so they can't bypass the login.
+  "workers_dev": false,
+  "preview_urls": false,
+
+  // run_worker_first: every request, including static files, goes through
+  // the Access check in src/access.ts before assets are served.
+  "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": true },
+
+  // Hourly ingestion. Adapters decide individually whether a refetch is due.
+  "triggers": { "crons": ["0 * * * *"] },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sitrep",
+      // Placeholder until `wrangler d1 create sitrep` is run against the account.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  "vars": {
+    // Cloudflare Access team domain, e.g. "yourteam.cloudflareaccess.com",
+    // and the Access application's AUD tag. Fill in when Access is set up.
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": ""
+  }
+}
