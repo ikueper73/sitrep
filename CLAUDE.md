@@ -111,4 +111,5 @@ The whole cron run (all sources + enrichment) shares one 10 ms CPU budget. CISA'
 - Web framework: Hono, with server-rendered pages (Hono JSX). Reason: one lightweight framework for API + UI on Workers; a read-mostly briefing doesn't need a client-side SPA.
 - Access: Cloudflare Access in front of the site, plus JWT verification in the Worker. Reason: data is public, but the product watchlist reveals the team's stack.
 - Production URL: https://sitrep.kueper.cloud (Worker custom domain; `workers.dev` and preview URLs disabled).
+- ransomware.live via the PRO API (free key, `RANSOMWARE_LIVE_API_KEY`). Use is non-commercial (user-confirmed). T&C: poll no more than every 30 min, show "Source: Ransomware.live" with a link wherever its data appears, don't re-serve its data to third parties, and never commit its raw data (the repo is public; its test fixture is synthetic).
 - Public GitHub repo: `ikueper73/sitrep`; `main` protected, `dev` for work.

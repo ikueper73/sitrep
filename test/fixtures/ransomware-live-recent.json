@@ -1,0 +1,60 @@
+[
+  {
+    "_comment": "SYNTHETIC fixture built from the documented fields of GET /victims/recent (api-pro.ransomware.live swagger, 2026-10-13). Must stay synthetic: the ransomware.live T&C forbid publishing their raw data, and this repo is public. Check field formats against a live response locally, without committing it.",
+    "victim": "Example Logistics Inc.",
+    "group": "qilin",
+    "attackdate": "2026-10-10 00:00:00.000000",
+    "discovered": "2026-10-12 14:05:11.482913",
+    "country": "US",
+    "activity": "Transportation/Logistics",
+    "website": "example-logistics.com",
+    "screenshot": "",
+    "infostealer": "",
+    "press": null,
+    "id": "RXhhbXBsZSBMb2dpc3RpY3MgSW5jLkBxaWxpbg==",
+    "permalink": "https://www.ransomware.live/id/RXhhbXBsZSBMb2dpc3RpY3MgSW5jLkBxaWxpbg=="
+  },
+  {
+    "victim": "Beispiel Maschinenbau GmbH",
+    "group": "Akira",
+    "attackdate": "2026-10-11",
+    "discovered": "2026-10-12 18:40:00",
+    "country": "DE",
+    "activity": "Manufacturing",
+    "website": "beispiel-maschinenbau.de",
+    "screenshot": "",
+    "infostealer": "",
+    "press": "https://news.example/akira-maschinenbau",
+    "id": "QmVpc3BpZWwgTWFzY2hpbmVuYmF1IEdtYkhAYWtpcmE=",
+    "permalink": "https://www.ransomware.live/id/QmVpc3BpZWwgTWFzY2hpbmVuYmF1IEdtYkhAYWtpcmE="
+  },
+  {
+    "victim": "Example Health Partners",
+    "group": "qilin",
+    "attackdate": "2026-10-12",
+    "discovered": "2026-10-13 06:12:45.000001",
+    "country": "us",
+    "activity": "Healthcare",
+    "website": "examplehealth.org",
+    "screenshot": "",
+    "infostealer": "",
+    "press": null,
+    "id": "RXhhbXBsZSBIZWFsdGggUGFydG5lcnNAcWlsaW4=",
+    "permalink": "javascript:alert(1)"
+  },
+  {
+    "victim": "Old Victim SA",
+    "group": "play",
+    "attackdate": "2026-10-01",
+    "discovered": "2026-10-09 10:00:00",
+    "country": "FR",
+    "activity": "Not Found",
+    "website": "",
+    "screenshot": "",
+    "infostealer": "",
+    "press": null,
+    "id": "T2xkIFZpY3RpbSBTQUBwbGF5",
+    "permalink": "https://www.ransomware.live/id/T2xkIFZpY3RpbSBTQUBwbGF5"
+  },
+  { "victim": "", "group": "broken", "discovered": "not a date" }
+]

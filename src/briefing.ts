@@ -45,6 +45,24 @@ export interface Headline {
   isNew: boolean;
 }
 
+export interface RansomwareVictim {
+  victim: string;
+  group: string;
+  country: string | null;
+  sector: string | null;
+  website: string | null;
+  discoveredAt: string;
+  url: string | null;
+  press: string | null;
+  isNew: boolean;
+}
+
+export interface RansomwareSummary {
+  total: number;
+  inTeamCountry: number;
+  topGroups: { group: string; count: number }[];
+}
+
 export interface SourceStatus {
   id: string;
   name: string;
@@ -65,8 +83,12 @@ export interface Briefing {
   exploited: ExploitedVuln[];
   advisories: Advisory[];
   headlines: Headline[];
+  ransomware: { summary: RansomwareSummary; victims: RansomwareVictim[] };
   sources: SourceStatus[];
 }
+
+/** The team is US-based: its country's victims are listed first. */
+export const TEAM_COUNTRY = "US";
 
 export const DEFAULT_WINDOW_DAYS = 7;
 
@@ -136,7 +158,7 @@ export async function buildBriefing(db: D1Database, now: Date, windowDays?: numb
   const headlinesSince = windowDays === undefined ? newSinceInstant : windowStartInstant;
 
   const newsPlaceholders = NEWS_SOURCES.map(() => "?").join(", ");
-  const [{ results }, { results: advisoryRows }, { results: headlineRows }, states] = await Promise.all([
+  const [{ results }, { results: advisoryRows }, { results: headlineRows }, { results: victimRows }, states] = await Promise.all([
     db
       .prepare(
         `SELECT i.cves, i.vendors, i.products, i.title, i.summary, i.url, i.published_at, i.tags, i.details,
@@ -153,8 +175,46 @@ export async function buildBriefing(db: D1Database, now: Date, windowDays?: numb
       .prepare(FEED_ITEMS_SQL(`i.source IN (${newsPlaceholders})`))
       .bind(...NEWS_SOURCES, headlinesSince)
       .all<FeedRow>(),
+    db
+      .prepare(
+        `SELECT title, url, published_at, details FROM items
+         WHERE source = 'ransomware-live' AND published_at >= ?
+         ORDER BY published_at DESC LIMIT 500`,
+      )
+      .bind(headlinesSince)
+      .all<{ title: string; url: string | null; published_at: string; details: string }>(),
     listSourceStates(db),
   ]);
+
+  const victims = victimRows.map((r): RansomwareVictim => {
+    const d = JSON.parse(r.details) as Record<string, string | null>;
+    return {
+      victim: r.title,
+      group: d.group ?? "",
+      country: d.country ?? null,
+      sector: d.sector ?? null,
+      website: d.website ?? null,
+      discoveredAt: r.published_at,
+      url: r.url,
+      press: d.press ?? null,
+      isNew: r.published_at >= newSinceInstant,
+    };
+  });
+  // Team-country victims first; otherwise newest first (the query's order; sort is stable).
+  victims.sort((a, b) => Number(b.country === TEAM_COUNTRY) - Number(a.country === TEAM_COUNTRY));
+  const groupCounts = new Map<string, number>();
+  for (const v of victims) groupCounts.set(v.group, (groupCounts.get(v.group) ?? 0) + 1);
+  const ransomware = {
+    summary: {
+      total: victims.length,
+      inTeamCountry: victims.filter((v) => v.country === TEAM_COUNTRY).length,
+      topGroups: [...groupCounts]
+        .map(([group, count]) => ({ group, count }))
+        .sort((a, b) => b.count - a.count || a.group.localeCompare(b.group))
+        .slice(0, 5),
+    },
+    victims,
+  };
 
   const advisories = advisoryRows.map(
     (r): Advisory => ({
@@ -234,6 +294,7 @@ export async function buildBriefing(db: D1Database, now: Date, windowDays?: numb
     exploited,
     advisories,
     headlines,
+    ransomware,
     sources,
   };
 }

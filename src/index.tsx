@@ -3,7 +3,7 @@ import { requireAccess } from "./access";
 import { buildBriefing } from "./briefing";
 import type { AppEnv, Bindings } from "./env";
 import { runEnrichment } from "./enrich";
-import { runIngestion } from "./ingest";
+import { createAdapters, runIngestion } from "./ingest";
 import { BriefingPage } from "./views/Briefing";
 
 const app = new Hono<AppEnv>();
@@ -35,7 +35,7 @@ export default {
     ctx.waitUntil(
       (async () => {
         // Ingest first so newly added CVEs are enriched in the same run.
-        const ingested = await runIngestion(env.DB);
+        const ingested = await runIngestion(env.DB, fetch, createAdapters(env));
         const enriched = await runEnrichment(env.DB, fetch, { nvdApiKey: env.NVD_API_KEY });
         console.log(`cron ${controller.cron}: ${JSON.stringify({ ingested, enriched })}`);
       })(),

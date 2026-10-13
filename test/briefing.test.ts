@@ -50,7 +50,7 @@ describe("buildBriefing", () => {
     await runIngestion(env.DB, fakeFeed(kevFixture), [kev]);
     const b = await buildBriefing(env.DB, standup);
     expect(b.sources.map((s) => s.id)).toEqual([
-      "kev", "cisa", "bleepingcomputer", "therecord", "sans-isc", "epss", "nvd",
+      "kev", "cisa", "bleepingcomputer", "therecord", "sans-isc", "ransomware-live", "epss", "nvd",
     ]);
     expect(b.sources[0]).toMatchObject({ name: "CISA KEV", version: "2026.10.08", error: null });
   });

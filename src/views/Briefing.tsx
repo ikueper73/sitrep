@@ -1,4 +1,12 @@
-import type { Advisory, Briefing, ExploitedVuln, Headline, SourceStatus } from "../briefing";
+import {
+  type Advisory,
+  type Briefing,
+  type ExploitedVuln,
+  type Headline,
+  type RansomwareVictim,
+  type SourceStatus,
+  TEAM_COUNTRY,
+} from "../briefing";
 import { formatDate, TEAM_TIME_ZONE } from "../dates";
 import { Layout } from "./Layout";
 
@@ -190,6 +198,32 @@ function HeadlineItem({ h }: { h: Headline }) {
   );
 }
 
+const MAX_VICTIMS = 40;
+
+function VictimItem({ v }: { v: RansomwareVictim }) {
+  return (
+    <li class={v.country === TEAM_COUNTRY ? "victim home" : "victim"}>
+      <a class="card-link" href={v.url ?? undefined} target="_blank" rel="noopener noreferrer">
+        {v.victim}
+      </a>{" "}
+      <span class="badge badge-group">{v.group}</span>
+      <span class="muted">
+        {v.country && ` · ${v.country}`}
+        {v.sector && ` · ${v.sector}`}
+        {` · ${shortTime(v.discoveredAt)}`}
+      </span>
+      {v.press && (
+        <>
+          {" · "}
+          <a href={v.press} target="_blank" rel="noopener noreferrer">
+            press
+          </a>
+        </>
+      )}
+    </li>
+  );
+}
+
 function SourceLine({ s }: { s: SourceStatus }) {
   if (!s.lastSuccessAt && !s.error) return <li>{s.name}: not fetched yet</li>;
   return (
@@ -271,6 +305,48 @@ export function BriefingPage({ b }: { b: Briefing }) {
               <HeadlineItem h={h} />
             ))}
           </ul>
+        )}
+      </section>
+
+      <section>
+        <h2>
+          Ransomware activity{" "}
+          <span class="muted">
+            · leak-site posts since {shortTime(b.headlinesSince)} · Source:{" "}
+            <a href="https://www.ransomware.live" target="_blank" rel="noopener noreferrer">
+              Ransomware.live
+            </a>
+          </span>
+        </h2>
+        {b.ransomware.summary.total === 0 ? (
+          <p class="muted">No new victims posted in this window.</p>
+        ) : (
+          <>
+            <p>
+              {count(b.ransomware.summary.total, "victim", "victims")} posted
+              {b.ransomware.summary.inTeamCountry > 0 && <>, <strong>{b.ransomware.summary.inTeamCountry} in the {TEAM_COUNTRY}</strong></>}
+              . Most active:{" "}
+              {b.ransomware.summary.topGroups.map((g, i) => (
+                <>
+                  {i > 0 && ", "}
+                  {g.group} ({g.count})
+                </>
+              ))}
+            </p>
+            <ul class="victims">
+              {b.ransomware.victims.slice(0, MAX_VICTIMS).map((v) => (
+                <VictimItem v={v} />
+              ))}
+            </ul>
+            {b.ransomware.victims.length > MAX_VICTIMS && (
+              <p class="muted">
+                +{b.ransomware.victims.length - MAX_VICTIMS} more on{" "}
+                <a href="https://www.ransomware.live" target="_blank" rel="noopener noreferrer">
+                  Ransomware.live
+                </a>
+              </p>
+            )}
+          </>
         )}
       </section>
 

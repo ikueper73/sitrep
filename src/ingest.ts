@@ -1,9 +1,16 @@
 import { feedAdapters } from "./sources/feeds";
 import { kev } from "./sources/kev";
+import { ransomwareLive } from "./sources/ransomware-live";
 import type { Fetcher, SourceAdapter } from "./sources/types";
 import { getSourceState, recordFetchError, recordFetchSuccess, upsertItems } from "./store";
 
-export const adapters: SourceAdapter[] = [kev, ...feedAdapters];
+/** All ingestion sources. Sources that need secrets get them from `secrets`. */
+export function createAdapters(secrets: { RANSOMWARE_LIVE_API_KEY?: string } = {}): SourceAdapter[] {
+  return [kev, ...feedAdapters, ransomwareLive(secrets.RANSOMWARE_LIVE_API_KEY)];
+}
+
+/** Source ids and names, e.g. for the briefing's source footer. Don't fetch with these. */
+export const adapters: SourceAdapter[] = createAdapters();
 
 export type IngestOutcome =
   | { source: string; status: "not-modified" }
