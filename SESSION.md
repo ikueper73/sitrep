@@ -26,8 +26,8 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 
 ## Next steps
 
-1. Deploy: user runs `npx wrangler secret put RANSOMWARE_LIVE_API_KEY`, then `npm run deploy` (applies migration 0002 first). Afterwards check the CPU-time metric for the hourly cron (all sources now run in one invocation).
-3. Optional: request a free NVD API key and set it with `npx wrangler secret put NVD_API_KEY` (faster NVD backfill).
+1. Watch the Workers dashboard CPU-time metric for the hourly cron now that all sources run together (Free plan limit: 10 ms per invocation).
+2. Ideas from the open questions below: product watchlist, cross-source story dedup.
 
 ## Open questions
 
