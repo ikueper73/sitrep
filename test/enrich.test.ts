@@ -87,10 +87,10 @@ describe("runEnrichment", () => {
     const apis = fakeEnrichmentApis();
     await runEnrichment(env.DB, apis, { now: new Date(now.getTime() + 25 * HOUR) });
     const nvdCves = apis.calls
-      .filter((r) => r.url.includes("nvd.nist.gov"))
+      .filter((r) => new URL(r.url).hostname === "services.nvd.nist.gov")
       .map((r) => new URL(r.url).searchParams.get("cveId"))
       .sort();
-    expect(apis.calls.some((r) => r.url.includes("api.first.org"))).toBe(true);
+    expect(apis.calls.some((r) => new URL(r.url).hostname === "api.first.org")).toBe(true);
     // The two scored CVEs aren't due for a week; the three without a score are rechecked.
     expect(nvdCves).toEqual(["CVE-2016-3081", "CVE-2021-3199", "CVE-2023-22894"]);
   });
