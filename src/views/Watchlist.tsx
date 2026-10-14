@@ -1,5 +1,6 @@
 import type { WatchItem } from "../watchlist/store";
 import { Layout } from "./Layout";
+import { Logo } from "./Logo";
 
 const TIER_NAMES: Record<number, string> = { 1: "Tier 1 · business critical", 2: "Tier 2 · important", 3: "Tier 3 · other" };
 
@@ -47,10 +48,7 @@ export function WatchlistPage({ items, notice, prefill }: { items: WatchItem[]; 
   const header = (
     <header class="topbar">
       <div class="topbar-inner">
-        <div class="brand">
-          <span class="brand-name">sitrep</span>
-          <span class="brand-date">Watchlist</span>
-        </div>
+        <Logo subtitle="Watchlist" />
         <p class="topbar-summary">
           {items.length} entries · <a class="topbar-link" href="/">Back to the briefing</a>
         </p>
@@ -58,7 +56,7 @@ export function WatchlistPage({ items, notice, prefill }: { items: WatchItem[]; 
     </header>
   );
   return (
-    <Layout title="sitrep · Watchlist" header={header}>
+    <Layout title="SitRep · Watchlist" header={header}>
       {notice && <p class="notice">{notice}</p>}
 
       <section class="section-static" id="add">

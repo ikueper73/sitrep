@@ -11,6 +11,7 @@ import {
 } from "../briefing";
 import { formatDate, TEAM_TIME_ZONE } from "../dates";
 import { Layout } from "./Layout";
+import { Logo } from "./Logo";
 
 function formatTime(iso: string): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -366,11 +367,9 @@ export function BriefingPage({ b }: { b: Briefing }) {
   const header = (
     <header class="topbar">
       <div class="topbar-inner">
-        <div class="brand">
-          <span class="brand-name">sitrep</span>
-          <span class="brand-date">{formatDate(b.today)}</span>
-        </div>
+        <Logo subtitle={formatDate(b.today)} />
         <p class="topbar-summary">
+          <span class="summary-counts">
           Since {formatDate(b.newSince)}: {count(newExploited, "new exploited vulnerability", "new exploited vulnerabilities")}
           {" · "}
           {count(newAdvisories, "new advisory", "new advisories")}
@@ -378,9 +377,10 @@ export function BriefingPage({ b }: { b: Briefing }) {
           {count(newHeadlines, "headline", "headlines")}
           {" · "}
           {count(rw.total, "ransomware victim", "ransomware victims")}
+          </span>
           {b.watchlistSize > 0 && (
             <>
-              {" · "}
+              <span class="summary-counts">{" · "}</span>
               <a class="topbar-link" href="/watchlist">
                 {stackCount([...b.exploited, ...b.advisories, ...b.headlines])} in your stack
               </a>
@@ -393,7 +393,7 @@ export function BriefingPage({ b }: { b: Briefing }) {
   );
 
   return (
-    <Layout title={`sitrep · ${formatDate(b.today)}`} header={header}>
+    <Layout title={`SitRep · ${formatDate(b.today)}`} header={header}>
       <Section
         id="exploited"
         title="Actively exploited"
