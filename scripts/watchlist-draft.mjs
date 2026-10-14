@@ -2,7 +2,9 @@
 // Builds a draft product watchlist from the Jira Assets software and vendor
 // exports, for a human to review before it is loaded into the database.
 //
-//   node scripts/watchlist-draft.mjs <software.csv> <vendors.csv> [out.csv]
+//   node scripts/watchlist-draft.mjs <software.csv> <vendors.csv> [out.csv] [--force]
+//
+// Refuses to overwrite an existing draft (it holds review edits) unless --force.
 //
 // The exports contain internal data (owners, costs, hostnames). They are only
 // read here; nothing from them is written into the repo. The draft goes to
@@ -15,43 +17,24 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { matchVendorProduct, normalize, vendorMatches } from "../src/watchlist/match.ts";
+import { parseCsv, toCsv } from "./lib/csv.mjs";
 
 const KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json";
 
-const [softwarePath, vendorsPath, outPath = "private/watchlist-draft.csv"] = process.argv.slice(2);
+const args = process.argv.slice(2);
+const force = args.includes("--force");
+const [softwarePath, vendorsPath, outPath = "private/watchlist-draft.csv"] = args.filter((a) => a !== "--force");
 const CONFIG_PATH = "private/watchlist-config.json";
 if (!softwarePath || !vendorsPath) {
-  console.error("usage: node scripts/watchlist-draft.mjs <software.csv> <vendors.csv> [out.csv]");
+  console.error("usage: node scripts/watchlist-draft.mjs <software.csv> <vendors.csv> [out.csv] [--force]");
+  process.exit(1);
+}
+// The draft is reviewed and edited by hand: never overwrite it silently.
+if (existsSync(outPath) && !force) {
+  console.error(`${outPath} exists and may contain review edits. Pass --force to overwrite, or give another output path.`);
   process.exit(1);
 }
 
-// ---------- CSV ----------
-
-/** RFC 4180 parser: quoted fields, doubled quotes, newlines inside quotes, BOM. */
-function parseCsv(text) {
-  text = text.replace(/^﻿/, "");
-  const rows = [];
-  let row = [], field = "", quoted = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (quoted) {
-      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
-      else if (c === '"') quoted = false;
-      else field += c;
-    } else if (c === '"') quoted = true;
-    else if (c === ",") { row.push(field); field = ""; }
-    else if (c === "\n" || c === "\r") {
-      if (c === "\r" && text[i + 1] === "\n") i++;
-      row.push(field); rows.push(row); row = []; field = "";
-    } else field += c;
-  }
-  if (field || row.length) { row.push(field); rows.push(row); }
-  const [header, ...data] = rows.filter((r) => r.some((f) => f !== ""));
-  return data.map((r) => Object.fromEntries(header.map((h, i) => [h, r[i] ?? ""])));
-}
-
-const toCsv = (rows) =>
-  rows.map((r) => r.map((v) => (/[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v))).join(",")).join("\n") + "\n";
 
 // ---------- Normalising inventory names ----------
 

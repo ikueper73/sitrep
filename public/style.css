@@ -256,3 +256,37 @@ main { max-width: 64rem; margin: 0 auto; padding: 1.25rem 1rem 2rem; }
   .topbar { position: static; }
   .toolbar { display: none; }
 }
+
+/* Watchlist ("Your stack") */
+:root { --stack: #09244f; --stack-bg: #d0df00; }
+@media (prefers-color-scheme: dark) { :root { --stack: #09244f; --stack-bg: #d0df00; } }
+.badge-stack { color: var(--stack); background: var(--stack-bg); }
+.badge-stack.tier-2, .badge-stack.tier-3 { background: color-mix(in srgb, var(--stack-bg) 55%, transparent); }
+.card.in-stack { border-left-color: var(--lime); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lime) 60%, transparent); }
+.card.in-stack.new { border-left-color: var(--lime); }
+.headline.in-stack { background: color-mix(in srgb, var(--lime) 10%, transparent); padding-left: 0.5rem; padding-right: 0.5rem; }
+.topbar-link { color: var(--lime); }
+
+/* Watchlist page */
+.notice { background: var(--new-bg); color: var(--new); padding: 0.6rem 0.9rem; border-radius: 3px; font-weight: 500; }
+.section-static { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 0.9rem 1rem 1rem; margin-bottom: 0.75rem; }
+.section-static h2 { margin: 0 0 0.6rem; font: 700 1.3rem var(--font-display); text-transform: uppercase; letter-spacing: 0.03em; color: var(--heading); }
+.watch-form { display: grid; gap: 0.6rem; max-width: 36rem; }
+.watch-form label { display: grid; gap: 0.2rem; font-weight: 500; color: var(--heading); }
+.watch-form label.check { display: flex; align-items: center; gap: 0.4rem; font-weight: 400; color: var(--fg); }
+.watch-form small { color: var(--muted); font-weight: 400; }
+.watch-form input:not([type="checkbox"]), .watch-form select {
+  font: inherit; padding: 0.4rem 0.5rem; border: 1px solid var(--border); border-radius: 3px; background: var(--bg); color: var(--fg);
+}
+.primary-button {
+  justify-self: start; font: 600 0.95rem/1 var(--font-display); text-transform: uppercase; letter-spacing: 0.05em;
+  color: #09244f; background: var(--lime); border: 0; border-radius: 3px; padding: 0.55rem 1rem; cursor: pointer;
+}
+.watch-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.watch-entry { padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+.watch-entry:last-child { border-bottom: none; }
+.watch-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }
+.watch-label { font-weight: 600; color: var(--heading); }
+.watch-entry .meta { margin-top: 0.15rem; }
+.inline-form { display: inline; margin-left: auto; }
+.link-button { background: none; border: 0; padding: 0; color: var(--danger); font: inherit; font-size: 0.85rem; cursor: pointer; text-decoration: underline; }

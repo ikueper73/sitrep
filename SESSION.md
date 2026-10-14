@@ -27,7 +27,7 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 ## Next steps
 
 1. Watch the Workers dashboard CPU-time metric for the hourly cron now that all sources run together (Free plan limit: 10 ms per invocation).
-2. Product watchlist: draft built from the Jira exports (`private/watchlist-draft.csv`: 109 yes / 4 review / 423 no). **Waiting for the user to review the draft.** Then: D1 table + loader for the reviewed CSV, KEV/advisory/headline matching with a "Your stack" badge and sort-first, and a watchlist page for edits.
+2. Product watchlist: built on `dev` (not deployed). Loaded locally from the draft (109 entries). To go live: merge to main, `npm run deploy` (applies migration 0003), then the user runs `npm run watchlist:sql` and `npx wrangler d1 execute sitrep --remote --file private/watchlist-load.sql`. Known tuning: the vendor-wide "Hitachi" entry (a drive configuration tool) matches unrelated "Hitachi Energy" ICS advisories — give it a product term in the CSV. The 4 "review" rows (Windows, Exchange, NetScaler, Cisco IOS) are not loaded until marked yes.
 3. Later: cross-source story dedup.
 
 ## Open questions
@@ -52,6 +52,7 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 - 2026-10-13: Custom domain and Cloudflare Access configured.
 - 2026-10-13: First production deploy; full KEV ingest fits the Free plan CPU limit.
 - 2026-10-13: EPSS + NVD enrichment. Found that test storage isn't isolated per test; added reset() before each test. Set `dev.host` so the localhost dev bypass works with a custom-domain route.
+- 2026-10-14: Watchlist in the briefing (badge, sort-first, counts), /watchlist page, loader. Vendor-wide entries match headline titles only.
 - 2026-10-14: Watchlist draft tooling; inventory-specific rules kept in gitignored `private/`.
 - 2026-10-13: v1 merged to `main` (PR #1).
 - 2026-10-13: Production showed BleepingComputer 403 (blocks Workers); swapped in The Hacker News.

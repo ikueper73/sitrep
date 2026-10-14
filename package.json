@@ -10,7 +10,9 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "cf-typegen": "wrangler types",
-    "db:migrate:local": "wrangler d1 migrations apply sitrep --local"
+    "db:migrate:local": "wrangler d1 migrations apply sitrep --local",
+    "watchlist:sql": "node scripts/watchlist-load.mjs",
+    "watchlist:load:local": "node scripts/watchlist-load.mjs && wrangler d1 execute sitrep --local --file private/watchlist-load.sql"
   },
   "dependencies": {
     "hono": "^4.13.13",
