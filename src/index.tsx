@@ -46,7 +46,18 @@ const list = (v: unknown) =>
     : [];
 
 app.get("/watchlist", async (c) => {
-  return c.html(<WatchlistPage items={await loadWatchlist(c.env.DB)} notice={c.req.query("notice")} />);
+  const q = (name: string, max: number) => (c.req.query(name) ?? "").trim().slice(0, max);
+  const prefill =
+    q("vendors", 200) || q("label", 120)
+      ? {
+          label: q("label", 120),
+          vendors: q("vendors", 200),
+          products: q("products", 300),
+          from: q("from", 200) || "the briefing",
+          guessed: c.req.query("guessed") === "1",
+        }
+      : undefined;
+  return c.html(<WatchlistPage items={await loadWatchlist(c.env.DB)} notice={c.req.query("notice")} prefill={prefill} />);
 });
 
 app.post("/watchlist", sameOrigin, async (c) => {

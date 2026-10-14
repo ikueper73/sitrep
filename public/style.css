@@ -290,3 +290,9 @@ main { max-width: 64rem; margin: 0 auto; padding: 1.25rem 1rem 2rem; }
 .watch-entry .meta { margin-top: 0.15rem; }
 .inline-form { display: inline; margin-left: auto; }
 .link-button { background: none; border: 0; padding: 0; color: var(--danger); font: inherit; font-size: 0.85rem; cursor: pointer; text-decoration: underline; }
+
+/* "Add to your stack" links and pre-filled form */
+.add-stack { font-weight: 500; white-space: nowrap; }
+.compact .add-stack { font-size: 0.85rem; }
+.prefill-note { margin: 0 0 0.75rem; padding: 0.5rem 0.75rem; border-left: 3px solid var(--lime); background: var(--bg); font-size: 0.92rem; }
+.prefill-note.warn { border-left-color: var(--sev-medium); }

@@ -76,6 +76,7 @@ The whole cron run (all sources + enrichment) shares one 10 ms CPU budget. CISA'
 - `node scripts/watchlist-draft.mjs <software.csv> <vendors.csv>` builds `private/watchlist-draft.csv` for human review, with historical KEV match counts per entry.
 - `private/` is gitignored and holds everything inventory-specific: the draft, and `private/watchlist-config.json` (curated match terms per app, resellers, in-house vendors). **Never commit inventory-derived names, hosts, resellers or the company name: the repo is public.** The watchlist itself will live only in D1, behind Access.
 - Workflow: `node scripts/watchlist-draft.mjs <software.csv> <vendors.csv>` → review `private/watchlist-draft.csv` (the script refuses to overwrite it; `--force` to regenerate) → `npm run watchlist:sql` writes `private/watchlist-load.sql` (include = yes rows; replaces the previous import, keeps entries added on /watchlist) → `npm run watchlist:load:local`, or for production the user runs `npx wrangler d1 execute sitrep --remote --file private/watchlist-load.sql`.
+- "Add to your stack" links (KEV items: exact vendor/product; ICS advisories: first title word guessed as vendor, flagged on the form) open `/watchlist?label=…&vendors=…&products=…&from=…#add`. GET only pre-fills; saving needs the form POST.
 - Storage: `watchlist` table (migration 0003). `/watchlist` lists entries and adds/removes hand-added ones (POSTs require same-origin: Sec-Fetch-Site or Origin host). Imported entries are edited via the CSV, not the page.
 - In the briefing: KEV items match on vendor + product; advisories and headlines match on text. Vendor-wide entries (no product terms) match titles only; entries with product terms match title + summary. Matches get a "Your stack" badge, sort first (by tier), and are counted per section and in the top bar.
 - Matching (`src/watchlist/match.ts`, dependency-free so the Node script can import it): vendor alias + product phrase (whole words). Vendors with >= 3 KEV entries are matched per product; smaller vendors on vendor name alone. Generic product names are matched against KEV (vendor + product) but not against headline text.
@@ -105,7 +106,7 @@ The whole cron run (all sources + enrichment) shares one 10 ms CPU budget. CISA'
 - `npm run cf-typegen` — regenerate `worker-configuration.d.ts` after any change to `wrangler.jsonc`
 - `npm run deploy` — apply pending D1 migrations to the remote database, then deploy. Run by the user: Claude's auto mode blocks production deploys.
 - Trigger the cron locally (fetches real feeds): `curl localhost:8787/cdn-cgi/handler/scheduled`
-- Stop a background dev server with `pkill -f 'workerd|wrangler dev'` in its own command: a `pkill -f` whose pattern appears in the same command line kills that shell too.
+- Stop a background dev server with `pkill -x workerd; pkill -f '[n]ode.*[w]rangler'` as a command of its own. `pkill -f` matches full command lines, including the shell running it: never put the unbracketed process name anywhere in the same command.
 
 ## Layout
 

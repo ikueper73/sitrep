@@ -66,6 +66,30 @@ function StackBadge({ stack }: { stack: StackMatch[] }) {
   );
 }
 
+/** Opens /watchlist with the add form pre-filled; nothing is saved until the form is submitted. */
+export function addToStackHref(p: { label: string; vendors: string; products: string; from: string; guessed?: boolean }): string {
+  const q = new URLSearchParams({ label: p.label, vendors: p.vendors, products: p.products, from: p.from });
+  if (p.guessed) q.set("guessed", "1");
+  return `/watchlist?${q.toString()}#add`;
+}
+
+function AddToStack({ href }: { href: string }) {
+  return (
+    <a class="add-stack" href={href} title="Open the watchlist form pre-filled with this item">
+      + Add to your stack
+    </a>
+  );
+}
+
+/**
+ * ICS advisory titles read "Vendor Product …" with no separator, so the split
+ * is a guess (first word = vendor); the form asks the user to check it.
+ */
+function icsGuess(title: string): { vendors: string; products: string } {
+  const [first = "", ...rest] = title.trim().split(/\s+/);
+  return { vendors: first, products: rest.join(" ") };
+}
+
 function stackCount(items: { stack: StackMatch[] }[]): number {
   return items.filter((i) => i.stack.length > 0).length;
 }
@@ -101,6 +125,19 @@ function VulnCard({ v }: { v: ExploitedVuln }) {
             <span title="CISA's remediation deadline for US federal agencies">
               Federal due date {formatDate(v.dueDate)}
             </span>
+          </>
+        )}
+        {v.stack.length === 0 && v.vendor && (
+          <>
+            {" · "}
+            <AddToStack
+              href={addToStackHref({
+                label: `${v.vendor} ${v.product}`.trim(),
+                vendors: v.vendor,
+                products: v.product,
+                from: v.cve,
+              })}
+            />
           </>
         )}
       </p>
@@ -193,6 +230,12 @@ function IcsList({ items }: { items: Advisory[] }) {
               {a.cves.length > 0 && ` · ${count(a.cves.length, "CVE", "CVEs")}`}
             </span>
             {a.kevCves.length > 0 && <span class="badge badge-ransomware"> KEV</span>}
+            {a.stack.length === 0 && (
+              <>
+                {" "}
+                <AddToStack href={addToStackHref({ label: a.title, ...icsGuess(a.title), from: a.title, guessed: true })} />
+              </>
+            )}
           </li>
         ))}
       </ul>
