@@ -7,3 +7,6 @@ dist/
 .env
 .env.*
 *.log
+
+# Internal data (e.g. watchlist drafts built from inventory exports). Never commit.
+private/
