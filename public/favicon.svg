@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- sitrep: a radar scope (situational awareness) in the site's palette.
+       Kept to a few bold shapes so it stays legible at 16 px. -->
+  <rect width="64" height="64" rx="14" fill="#09244f"/>
+  <!-- range ring -->
+  <circle cx="32" cy="32" r="21" fill="none" stroke="#ffffff" stroke-opacity="0.6" stroke-width="4.5"/>
+  <!-- sweep: a quarter from 12 to 3 o'clock -->
+  <path d="M32 32 L32 11 A21 21 0 0 1 53 32 Z" fill="#d0df00"/>
+  <!-- contact -->
+  <circle cx="20.5" cy="42.5" r="6" fill="#ff6b5b"/>
+  <circle cx="32" cy="32" r="3.5" fill="#ffffff"/>
+</svg>

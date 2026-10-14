@@ -41,6 +41,21 @@ describe("routes", () => {
     expect(html).toMatch(/<script src="\/app\.js" defer/);
   });
 
+  it("links the favicons and serves them after the access check", async () => {
+    const html = await (await exports.default.fetch("http://localhost:8787/")).text();
+    expect(html).toContain('<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>');
+    for (const [path, type] of [
+      ["/favicon.svg", "image/svg+xml"],
+      ["/favicon.ico", "image/"],
+      ["/apple-touch-icon.png", "image/png"],
+    ]) {
+      const res = await exports.default.fetch(`http://localhost:8787${path}`);
+      expect(res.status).toBe(200);
+      expect(res.headers.get("Content-Type")).toContain(type);
+    }
+    expect((await exports.default.fetch("https://sitrep.example.com/favicon.ico")).status).toBe(403);
+  });
+
   it("serves the toolbar script only after the access check", async () => {
     expect((await exports.default.fetch("http://localhost:8787/app.js")).status).toBe(200);
     expect((await exports.default.fetch("https://sitrep.example.com/app.js")).status).toBe(403);
