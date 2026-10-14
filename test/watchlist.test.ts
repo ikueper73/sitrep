@@ -6,6 +6,7 @@ import { feedAdapters } from "../src/sources/feeds";
 import { kev } from "../src/sources/kev";
 import { matchText, matchVendorProduct, normalize, productMatches, vendorMatches, type WatchEntry } from "../src/watchlist/match";
 import { addWatchEntry, loadWatchlist } from "../src/watchlist/store";
+import cisaXml from "./fixtures/rss/cisa.xml?raw";
 import therecordXml from "./fixtures/rss/therecord.xml?raw";
 import { fakeFeed, kevFixture } from "./helpers";
 
@@ -154,5 +155,51 @@ describe("/watchlist", () => {
 
   it("is behind the access check", async () => {
     expect((await exports.default.fetch("https://sitrep.example.com/watchlist")).status).toBe(403);
+  });
+});
+
+describe("Add to your stack", () => {
+  const page = async (path: string) => (await exports.default.fetch(`http://localhost:8787${path}`)).text();
+  const unescape = (s: string) => s.replace(/&amp;/g, "&");
+
+  it("links KEV items not in the stack to a pre-filled form", async () => {
+    await runIngestion(env.DB, fakeFeed(kevFixture), [kev]);
+    await addWatchEntry(env.DB, { label: "Apache Struts", vendors: ["Apache"], products: ["struts"], tier: 1, matchText: true }, "x");
+    const html = unescape(await page("/?days=30"));
+    // ISC BIND is not in the stack: it gets a link with its exact KEV vendor and product.
+    expect(html).toContain('href="/watchlist?label=ISC+BIND&vendors=ISC&products=BIND&from=CVE-2015-5477#add"');
+    // Apache Struts already is: no link.
+    expect(html).not.toContain("from=CVE-2016-3081");
+  });
+
+  it("links ICS advisories with a guessed vendor", async () => {
+    const cisa = feedAdapters.find((a) => a.id === "cisa")!;
+    await runIngestion(env.DB, async () => new Response(cisaXml), [cisa]);
+    const html = unescape(await page("/?days=30"));
+    expect(html).toContain("/watchlist?label=Satel+Netco+Design&vendors=Satel&products=Netco+Design");
+    expect(html).toContain("guessed=1");
+  });
+
+  it("pre-fills the form and says where the values came from", async () => {
+    const html = await page("/watchlist?label=ISC+BIND&vendors=ISC&products=BIND&from=CVE-2015-5477");
+    expect(html).toContain('value="ISC BIND"');
+    expect(html).toContain('value="BIND"');
+    expect(html).toContain("Pre-filled from <strong>CVE-2015-5477</strong>");
+    expect(html).not.toContain("guessed from the advisory title");
+  });
+
+  it("warns when the values were guessed", async () => {
+    const html = await page("/watchlist?label=Satel+Netco+Design&vendors=Satel&products=Netco+Design&from=x&guessed=1");
+    expect(html).toContain("guessed from the advisory title");
+  });
+
+  it("escapes pre-filled values", async () => {
+    const html = await page(`/watchlist?label=${encodeURIComponent('"><script>alert(1)</script>')}&vendors=x&from=x`);
+    expect(html).not.toContain("<script>alert(1)</script>");
+  });
+
+  it("does not save anything until the form is submitted", async () => {
+    await page("/watchlist?label=ISC+BIND&vendors=ISC&products=BIND&from=CVE-2015-5477");
+    expect(await loadWatchlist(env.DB)).toHaveLength(0);
   });
 });

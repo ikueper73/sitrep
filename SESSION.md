@@ -52,6 +52,7 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 - 2026-10-13: Custom domain and Cloudflare Access configured.
 - 2026-10-13: First production deploy; full KEV ingest fits the Free plan CPU limit.
 - 2026-10-13: EPSS + NVD enrichment. Found that test storage isn't isolated per test; added reset() before each test. Set `dev.host` so the localhost dev bypass works with a custom-domain route.
+- 2026-10-14: "Add to your stack" links on KEV items (exact vendor/product) and ICS advisories (vendor guessed from title) pre-fill the /watchlist form.
 - 2026-10-14: Watchlist in the briefing (badge, sort-first, counts), /watchlist page, loader. Vendor-wide entries match headline titles only.
 - 2026-10-14: Watchlist draft tooling; inventory-specific rules kept in gitignored `private/`.
 - 2026-10-13: v1 merged to `main` (PR #1).

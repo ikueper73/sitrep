@@ -32,7 +32,18 @@ function Entry({ e }: { e: WatchItem }) {
   );
 }
 
-export function WatchlistPage({ items, notice }: { items: WatchItem[]; notice?: string }) {
+/** Values for the add form, e.g. from an "Add to your stack" link in the briefing. */
+export interface Prefill {
+  label: string;
+  vendors: string;
+  products: string;
+  /** What the values came from, e.g. a CVE ID or an advisory title. */
+  from: string;
+  /** True when vendor/product were guessed (ICS advisory titles). */
+  guessed: boolean;
+}
+
+export function WatchlistPage({ items, notice, prefill }: { items: WatchItem[]; notice?: string; prefill?: Prefill }) {
   const header = (
     <header class="topbar">
       <div class="topbar-inner">
@@ -50,18 +61,27 @@ export function WatchlistPage({ items, notice }: { items: WatchItem[]; notice?: 
     <Layout title="sitrep · Watchlist" header={header}>
       {notice && <p class="notice">{notice}</p>}
 
-      <section class="section-static">
+      <section class="section-static" id="add">
         <h2>Add an entry</h2>
+        {prefill && (
+          <p class={prefill.guessed ? "prefill-note warn" : "prefill-note"}>
+            Pre-filled from <strong>{prefill.from}</strong>.{" "}
+            {prefill.guessed
+              ? "Vendor and product were guessed from the advisory title: check where the vendor name ends."
+              : "Check the values, choose a tier, then add."}
+          </p>
+        )}
         <form method="post" action="/watchlist" class="watch-form">
           <label>
-            Name <input name="label" required maxlength={120} placeholder="e.g. Fortinet FortiGate firewalls" />
+            Name{" "}
+            <input name="label" required maxlength={120} placeholder="e.g. Fortinet FortiGate firewalls" value={prefill?.label} autofocus={!!prefill} />
           </label>
           <label>
-            Vendor names <input name="vendors" required maxlength={200} placeholder="e.g. Fortinet" />
+            Vendor names <input name="vendors" required maxlength={200} placeholder="e.g. Fortinet" value={prefill?.vendors} />
             <small>Separate several with “;”, as advisories may name the vendor differently.</small>
           </label>
           <label>
-            Product terms <input name="products" maxlength={300} placeholder="e.g. FortiOS; FortiGate" />
+            Product terms <input name="products" maxlength={300} placeholder="e.g. FortiOS; FortiGate" value={prefill?.products} />
             <small>Leave empty to match any product of the vendor.</small>
           </label>
           <label>
