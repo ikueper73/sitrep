@@ -197,13 +197,11 @@ for (const e of entries.values()) {
   if (e.source === "suggested") include = "review";
   else if (hits.length > 0 || (kevVendor && e.tier <= 2) || e.tier === 1) include = "yes";
   else include = "no";
-  const label = e.products.length || e.appNames.length <= 1
-    ? e.label
-    : `${e.label} (${e.appNames.slice(0, 4).join(", ")}${e.appNames.length > 4 ? ` +${e.appNames.length - 4}` : ""})`;
   rows.push({
     include,
     tier: e.tier,
-    label,
+    label: e.label,
+    apps: [...new Set(e.appNames)].join("; "),
     headlines: e.headlines ? "yes" : "no",
     vendors: e.vendors.join("; "),
     products: e.products.join("; "),
@@ -219,9 +217,9 @@ for (const e of entries.values()) {
 const order = { yes: 0, review: 1, no: 2 };
 rows.sort((a, b) => order[a.include] - order[b.include] || a.tier - b.tier || b.kevAllTime - a.kevAllTime || a.label.localeCompare(b.label));
 
-const header = ["include", "tier", "label", "vendors", "products", "match_headlines", "kev_vendor", "kev_matches_all_time", "kev_matches_last_12m", "example_kev_matches", "jira_keys", "notes"];
+const header = ["include", "tier", "label", "apps", "vendors", "products", "match_headlines", "kev_vendor", "kev_matches_all_time", "kev_matches_last_12m", "example_kev_matches", "jira_keys", "notes"];
 mkdirSync(dirname(outPath), { recursive: true });
-writeFileSync(outPath, toCsv([header, ...rows.map((r) => [r.include, r.tier, r.label, r.vendors, r.products, r.headlines, r.kevVendor, r.kevAllTime, r.kevLast12m, r.example, r.jira, r.notes])]));
+writeFileSync(outPath, toCsv([header, ...rows.map((r) => [r.include, r.tier, r.label, r.apps, r.vendors, r.products, r.headlines, r.kevVendor, r.kevAllTime, r.kevLast12m, r.example, r.jira, r.notes])]));
 
 const count = (k) => rows.filter((r) => r.include === k).length;
 console.error(`wrote ${rows.length} entries to ${outPath}: ${count("yes")} yes, ${count("review")} review, ${count("no")} no`);
