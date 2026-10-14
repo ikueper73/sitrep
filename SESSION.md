@@ -27,7 +27,8 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 ## Next steps
 
 1. Watch the Workers dashboard CPU-time metric for the hourly cron now that all sources run together (Free plan limit: 10 ms per invocation).
-2. Ideas from the open questions below: product watchlist, cross-source story dedup.
+2. Product watchlist: draft built from the Jira exports (`private/watchlist-draft.csv`: 109 yes / 4 review / 423 no). **Waiting for the user to review the draft.** Then: D1 table + loader for the reviewed CSV, KEV/advisory/headline matching with a "Your stack" badge and sort-first, and a watchlist page for edits.
+3. Later: cross-source story dedup.
 
 ## Open questions
 
@@ -38,7 +39,6 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
   - Commercial use needs prior written approval. **Decided 2026-10-13: the user confirmed sitrep's use is non-commercial.** Revisit if that changes.
 
 - Cross-source dedup of the same story (e.g. BleepingComputer and The Record both covered the French supermarket attack).
-- Product watchlist (vendors/products in the team's stack to highlight) — revisit after KEV works.
 
 ## Log
 
@@ -52,6 +52,7 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 - 2026-10-13: Custom domain and Cloudflare Access configured.
 - 2026-10-13: First production deploy; full KEV ingest fits the Free plan CPU limit.
 - 2026-10-13: EPSS + NVD enrichment. Found that test storage isn't isolated per test; added reset() before each test. Set `dev.host` so the localhost dev bypass works with a custom-domain route.
+- 2026-10-14: Watchlist draft tooling; inventory-specific rules kept in gitignored `private/`.
 - 2026-10-13: v1 merged to `main` (PR #1).
 - 2026-10-13: Production showed BleepingComputer 403 (blocks Workers); swapped in The Hacker News.
 - 2026-10-13: UI polish: collapsible sections, step-through controls, new palette/fonts.

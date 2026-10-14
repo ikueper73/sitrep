@@ -70,6 +70,13 @@ The whole cron run (all sources + enrichment) shares one 10 ms CPU budget. CISA'
 - `app.js` adds standup controls: Next/Prev (one section open at a time), Expand/Collapse all, keys N/→, P/←, E, C. `/#<section-id>` opens that section (ids: exploited, advisories, headlines, ransomware). The page must keep working without JS.
 - Screenshots: `chromium --headless=new --screenshot=… "http://localhost:8787/#advisories"` while `npm run dev` runs. Headless screenshots of a scrolled page show the sticky header mid-page; that's a capture artefact, not a bug.
 
+## Product watchlist (in progress)
+
+- Source: the team's Jira Assets exports (software + vendor objects). They contain internal data (owners, costs, hosts) and stay outside the repo.
+- `node scripts/watchlist-draft.mjs <software.csv> <vendors.csv>` builds `private/watchlist-draft.csv` for human review, with historical KEV match counts per entry.
+- `private/` is gitignored and holds everything inventory-specific: the draft, and `private/watchlist-config.json` (curated match terms per app, resellers, in-house vendors). **Never commit inventory-derived names, hosts, resellers or the company name: the repo is public.** The watchlist itself will live only in D1, behind Access.
+- Matching (`src/watchlist/match.ts`, dependency-free so the Node script can import it): vendor alias + product phrase (whole words). Vendors with >= 3 KEV entries are matched per product; smaller vendors on vendor name alone. Generic product names are matched against KEV (vendor + product) but not against headline text.
+
 ## Enrichment rules
 
 - CVEs from items published in the last 30 days are enriched (stored in `cve_enrichment`, joined by CVE ID).
@@ -79,7 +86,7 @@ The whole cron run (all sources + enrichment) shares one 10 ms CPU budget. CISA'
 
 ## Conventions
 
-- **Branches**: work on `dev`. `main` is protected: changes reach it only via pull request (`gh pr create --base main --head dev`), merged with a merge commit (not squash), then fast-forward `dev` to `main`. Never push to `main` directly or force-push.
+- **Branches**: work on `dev` (check `git branch --show-current` before committing; the user may have `main` checked out after a deploy). `main` is protected: changes reach it only via pull request (`gh pr create --base main --head dev`), merged with a merge commit (not squash), then fast-forward `dev` to `main`. Never push to `main` directly or force-push.
 - **Releases**: `main` is what runs in production. Try changes from `dev` locally; deploy (`npm run deploy`, run by the user) from `main` after merging.
 - **Access check**: `DEV_BYPASS_ACCESS=true` (in `.dev.vars` only) skips the JWT check, and only for `localhost` requests. Never set it as a deployed var or secret. Every new route must sit behind `requireAccess` (it is applied to `*`).
 - **Secrets**: API keys go in Wrangler secrets (`wrangler secret put`) and `.dev.vars` locally. `.dev.vars` must never be committed.
