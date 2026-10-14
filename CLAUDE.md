@@ -66,6 +66,8 @@ The whole cron run (all sources + enrichment) shares one 10 ms CPU budget. CISA'
 ## UI
 
 - Palette and type follow a corporate scheme the user picked: navy `#09244f`, blue `#006e96`, dark grey `#464747`, light grey `#f9f8f8`, lime accent `#d0df00`, green `#4f8309`; Barlow (body) and Barlow Condensed (headings, labels), loaded from Google Fonts. Colours, not logos or names. All colours are tokens on `:root`, with a navy dark mode.
+- Logo (`src/views/Logo.tsx`): the favicon's radar mark without its tile, plus the "SitRep" wordmark as live text (Barlow Condensed, "Rep" in lime); top-left on all pages, links to the briefing. The product name is written "SitRep".
+- Phones (< 40rem): compact sticky bar — summary counts hidden (section headers carry them; the "in your stack" link stays), toolbar on one row without the position text.
 - Each section is a `<details class="section">`, collapsed by default; its summary shows the count, "N new" and context, so the collapsed page is itself a summary.
 - `app.js` adds standup controls: Next/Prev (one section open at a time), Expand/Collapse all, keys N/→, P/←, E, C. `/#<section-id>` opens that section (ids: exploited, advisories, headlines, ransomware). The page must keep working without JS.
 - Screenshots: `chromium --headless=new --screenshot=… "http://localhost:8787/#advisories"` while `npm run dev` runs. Headless screenshots of a scrolled page show the sticky header mid-page; that's a capture artefact, not a bug.

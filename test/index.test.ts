@@ -27,7 +27,7 @@ describe("access control", () => {
   it("honours the dev bypass on localhost", async () => {
     const res = await exports.default.fetch("http://localhost:8787/");
     expect(res.status).toBe(200);
-    expect(await res.text()).toContain("sitrep");
+    expect(await res.text()).toContain("SitRep");
   });
 });
 

@@ -85,13 +85,31 @@ main { max-width: 64rem; margin: 0 auto; padding: 1.25rem 1rem 2rem; }
   border-bottom: 4px solid var(--lime);
 }
 .topbar-inner { max-width: 64rem; margin: 0 auto; padding: 0.75rem 1rem 0.6rem; }
-.brand { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
-.brand-name {
-  font: 700 1.75rem/1 var(--font-display);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--bar-fg);
+  text-decoration: none;
 }
-.brand-date { font: 500 1.15rem/1 var(--font-display); color: var(--lime); text-transform: uppercase; letter-spacing: 0.04em; }
+.brand:hover .brand-word-accent { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.brand:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; border-radius: 2px; }
+.brand-mark { width: 2.4rem; height: 2.4rem; flex: none; }
+.brand-word {
+  font: 700 2rem/1 var(--font-display);
+  letter-spacing: 0.01em;
+}
+.brand-word-accent { color: var(--lime); }
+.brand-date {
+  font: 500 1.05rem/1 var(--font-display);
+  color: var(--bar-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-left: 0.35rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid rgb(255 255 255 / 0.25);
+  align-self: center;
+}
 .topbar-summary { margin: 0.35rem 0 0.6rem; color: var(--bar-muted); font-size: 0.95rem; }
 
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
@@ -246,7 +264,18 @@ main { max-width: 64rem; margin: 0 auto; padding: 1.25rem 1rem 2rem; }
 .source-error { color: var(--danger); }
 
 @media (max-width: 40rem) {
-  html { scroll-padding-top: 12rem; }
+  .brand-mark { width: 1.9rem; height: 1.9rem; }
+  .brand-word { font-size: 1.6rem; }
+  .brand-date { font-size: 0.95rem; padding-left: 0.6rem; margin-left: 0.2rem; }
+  /* Compact sticky bar on phones: section headers already carry the counts. */
+  .topbar-inner { padding: 0.55rem 1rem 0.5rem; }
+  .summary-counts { display: none; }
+  .topbar-summary { margin: 0.25rem 0 0.4rem; font-size: 0.9rem; }
+  .topbar-summary:not(:has(a)) { display: none; }
+  .toolbar { flex-wrap: nowrap; gap: 0.3rem; }
+  .toolbar button { padding: 0.45rem 0.6rem; font-size: 0.85rem; }
+  .toolbar-position { display: none; }
+  html { scroll-padding-top: 8rem; }
   .toolbar-spacer { display: none; }
   .section-title { font-size: 1.25rem; }
   .section-meta { padding-left: 0; }
