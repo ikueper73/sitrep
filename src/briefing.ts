@@ -3,6 +3,14 @@ import { type CisaKind, cisaKind, feeds } from "./sources/feeds";
 import { listSourceStates, type SourceStateRow } from "./store";
 import { adapters } from "./ingest";
 import { enrichers } from "./enrich";
+import { loadWatchlist } from "./watchlist/store";
+import { matchText, matchVendorProduct, type WatchEntry } from "./watchlist/match";
+
+/** A watchlist entry an item matched. */
+export interface StackMatch {
+  label: string;
+  tier: number;
+}
 
 export interface ExploitedVuln {
   cve: string;
@@ -19,6 +27,7 @@ export interface ExploitedVuln {
   cvss: { score: number; severity: string; version: string; source: string } | null;
   epss: { score: number; percentile: number } | null;
   automatable: boolean;
+  stack: StackMatch[];
 }
 
 export interface Advisory {
@@ -31,6 +40,7 @@ export interface Advisory {
   /** The subset of `cves` that is in the KEV catalog. */
   kevCves: string[];
   isNew: boolean;
+  stack: StackMatch[];
 }
 
 export interface Headline {
@@ -43,6 +53,7 @@ export interface Headline {
   cves: string[];
   kevCves: string[];
   isNew: boolean;
+  stack: StackMatch[];
 }
 
 export interface RansomwareVictim {
@@ -84,6 +95,8 @@ export interface Briefing {
   advisories: Advisory[];
   headlines: Headline[];
   ransomware: { summary: RansomwareSummary; victims: RansomwareVictim[] };
+  /** Number of watchlist entries; 0 means no watchlist is loaded. */
+  watchlistSize: number;
   sources: SourceStatus[];
 }
 
@@ -112,11 +125,35 @@ interface KevRow {
 }
 
 /**
- * New items first; within each group, most likely to be exploited (EPSS),
- * then most severe (CVSS), then most recently added.
+ * Free-text matching for advisories and headlines. Vendor-wide entries (no
+ * product terms) match the title only: a vendor named in passing in a summary
+ * is noise. Entries with product terms are specific enough for the summary too.
+ */
+function matchItem(watchlist: WatchEntry[], title: string, summary: string | null): WatchEntry[] {
+  const specific = watchlist.filter((e) => e.products.length > 0);
+  const vendorWide = watchlist.filter((e) => e.products.length === 0);
+  return [...matchText(specific, `${title} ${summary ?? ""}`), ...matchText(vendorWide, title)];
+}
+
+function toStack(matches: WatchEntry[]): StackMatch[] {
+  return matches
+    .map((m) => ({ label: m.label, tier: m.tier }))
+    .sort((a, b) => a.tier - b.tier || a.label.localeCompare(b.label));
+}
+
+/** Items matching the team's stack first, most critical tier first. */
+function byStack(a: { stack: StackMatch[] }, b: { stack: StackMatch[] }): number {
+  const tier = (x: { stack: StackMatch[] }) => x.stack[0]?.tier ?? 99;
+  return tier(a) - tier(b);
+}
+
+/**
+ * Items in the team's stack first, then new items; within each group, most
+ * likely to be exploited (EPSS), then most severe (CVSS), then most recent.
  */
 export function rankExploited(a: ExploitedVuln, b: ExploitedVuln): number {
   return (
+    byStack(a, b) ||
     Number(b.isNew) - Number(a.isNew) ||
     (b.epss?.score ?? -1) - (a.epss?.score ?? -1) ||
     (b.cvss?.score ?? -1) - (a.cvss?.score ?? -1) ||
@@ -158,7 +195,7 @@ export async function buildBriefing(db: D1Database, now: Date, windowDays?: numb
   const headlinesSince = windowDays === undefined ? newSinceInstant : windowStartInstant;
 
   const newsPlaceholders = NEWS_SOURCES.map(() => "?").join(", ");
-  const [{ results }, { results: advisoryRows }, { results: headlineRows }, { results: victimRows }, states] = await Promise.all([
+  const [{ results }, { results: advisoryRows }, { results: headlineRows }, { results: victimRows }, states, watchlist] = await Promise.all([
     db
       .prepare(
         `SELECT i.cves, i.vendors, i.products, i.title, i.summary, i.url, i.published_at, i.tags, i.details,
@@ -184,6 +221,7 @@ export async function buildBriefing(db: D1Database, now: Date, windowDays?: numb
       .bind(headlinesSince)
       .all<{ title: string; url: string | null; published_at: string; details: string }>(),
     listSourceStates(db),
+    loadWatchlist(db),
   ]);
 
   const victims = victimRows.map((r): RansomwareVictim => {
@@ -226,8 +264,10 @@ export async function buildBriefing(db: D1Database, now: Date, windowDays?: numb
       cves: JSON.parse(r.cves) as string[],
       kevCves: JSON.parse(r.kev_cves) as string[],
       isNew: r.published_at >= newSinceInstant,
+      stack: toStack(matchItem(watchlist, r.title, r.summary)),
     }),
   );
+  advisories.sort((a, b) => byStack(a, b) || b.publishedAt.localeCompare(a.publishedAt));
 
   const headlines = headlineRows.map(
     (r): Headline => ({
@@ -240,8 +280,10 @@ export async function buildBriefing(db: D1Database, now: Date, windowDays?: numb
       cves: JSON.parse(r.cves) as string[],
       kevCves: JSON.parse(r.kev_cves) as string[],
       isNew: r.published_at >= newSinceInstant,
+      stack: toStack(matchItem(watchlist, r.title, r.summary)),
     }),
   );
+  headlines.sort((a, b) => byStack(a, b) || b.publishedAt.localeCompare(a.publishedAt));
 
   const exploited = results.map((r): ExploitedVuln => {
     const details = JSON.parse(r.details) as { dueDate?: string | null; requiredAction?: string };
@@ -268,6 +310,9 @@ export async function buildBriefing(db: D1Database, now: Date, windowDays?: numb
           : null,
       epss: r.epss !== null ? { score: r.epss, percentile: r.epss_percentile ?? 0 } : null,
       automatable: r.ssvc_automatable === "yes",
+      stack: toStack(
+        matchVendorProduct(watchlist, (JSON.parse(r.vendors) as string[])[0] ?? "", (JSON.parse(r.products) as string[])[0] ?? ""),
+      ),
     };
   });
   exploited.sort(rankExploited);
@@ -295,6 +340,7 @@ export async function buildBriefing(db: D1Database, now: Date, windowDays?: numb
     advisories,
     headlines,
     ransomware,
+    watchlistSize: watchlist.length,
     sources,
   };
 }

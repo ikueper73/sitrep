@@ -138,7 +138,7 @@ describe("briefing with enrichment", () => {
   it("puts unscored entries after scored ones", () => {
     const base: ExploitedVuln = {
       cve: "CVE-A", vendor: "", product: "", name: "", description: null, url: null, dateAdded: "2026-10-08",
-      dueDate: null, requiredAction: "", ransomware: false, isNew: true, cvss: null, epss: null, automatable: false,
+      dueDate: null, requiredAction: "", ransomware: false, isNew: true, cvss: null, epss: null, automatable: false, stack: [],
     };
     const scored = { ...base, cve: "CVE-B", epss: { score: 0.01, percentile: 0.5 } };
     expect([base, scored].sort(rankExploited).map((v) => v.cve)).toEqual(["CVE-B", "CVE-A"]);

@@ -6,6 +6,7 @@ import {
   type Headline,
   type RansomwareVictim,
   type SourceStatus,
+  type StackMatch,
   TEAM_COUNTRY,
 } from "../briefing";
 import { formatDate, TEAM_TIME_ZONE } from "../dates";
@@ -54,10 +55,26 @@ function EpssTag({ epss }: { epss: NonNullable<ExploitedVuln["epss"]> }) {
   );
 }
 
+/** "Your stack" badge; the tooltip lists the matched watchlist entries. */
+function StackBadge({ stack }: { stack: StackMatch[] }) {
+  if (stack.length === 0) return null;
+  const title = `Matches your watchlist: ${stack.map((m) => `${m.label} (tier ${m.tier})`).join(", ")}`;
+  return (
+    <span class={`badge badge-stack tier-${stack[0]!.tier}`} title={title}>
+      Your stack{stack[0]!.tier === 1 ? " · T1" : ""}
+    </span>
+  );
+}
+
+function stackCount(items: { stack: StackMatch[] }[]): number {
+  return items.filter((i) => i.stack.length > 0).length;
+}
+
 function VulnCard({ v }: { v: ExploitedVuln }) {
   return (
-    <li class={v.isNew ? "card new" : "card"}>
+    <li class={`card${v.isNew ? " new" : ""}${v.stack.length ? " in-stack" : ""}`}>
       <div class="card-head">
+        <StackBadge stack={v.stack} />
         {v.isNew && <span class="badge badge-new">New</span>}
         <a class="cve" href={v.url ?? undefined} target="_blank" rel="noopener noreferrer">
           {v.cve}
@@ -138,8 +155,9 @@ function CveList({ cves, kevCves, max = 6 }: { cves: string[]; kevCves: string[]
 function AdvisoryCard({ a }: { a: Advisory }) {
   const label = a.kind === "alert" ? "Alert" : a.kind === "advisory" ? "Advisory" : "Notice";
   return (
-    <li class={a.isNew ? "card new" : "card"}>
+    <li class={`card${a.isNew ? " new" : ""}${a.stack.length ? " in-stack" : ""}`}>
       <div class="card-head">
+        <StackBadge stack={a.stack} />
         {a.isNew && <span class="badge badge-new">New</span>}
         <span class="badge badge-kind">{label}</span>
         <a class="card-link" href={a.url ?? undefined} target="_blank" rel="noopener noreferrer">
@@ -165,6 +183,7 @@ function IcsList({ items }: { items: Advisory[] }) {
       <ul class="compact">
         {items.map((a) => (
           <li>
+            <StackBadge stack={a.stack} />
             {a.isNew && <span class="badge badge-new">New</span>}{" "}
             <a href={a.url ?? undefined} target="_blank" rel="noopener noreferrer">
               {a.title}
@@ -183,8 +202,9 @@ function IcsList({ items }: { items: Advisory[] }) {
 
 function HeadlineItem({ h }: { h: Headline }) {
   return (
-    <li class="headline">
+    <li class={h.stack.length ? "headline in-stack" : "headline"}>
       <div>
+        <StackBadge stack={h.stack} />{" "}
         <a class="card-link" href={h.url ?? undefined} target="_blank" rel="noopener noreferrer">
           {h.title}
         </a>
@@ -243,6 +263,7 @@ function Section({
   title,
   total,
   fresh,
+  inStack,
   meta,
   children,
 }: {
@@ -250,6 +271,7 @@ function Section({
   title: string;
   total: number;
   fresh?: number;
+  inStack?: number;
   meta: Child;
   children: Child;
 }) {
@@ -260,6 +282,7 @@ function Section({
         <span class="section-count" title="Items in this section">
           {total}
         </span>
+        {inStack !== undefined && inStack > 0 && <span class="badge badge-stack">{inStack} in your stack</span>}
         {fresh !== undefined && fresh > 0 && <span class="badge badge-new">{fresh} new</span>}
         <span class="section-meta">{meta}</span>
       </summary>
@@ -312,6 +335,14 @@ export function BriefingPage({ b }: { b: Briefing }) {
           {count(newHeadlines, "headline", "headlines")}
           {" · "}
           {count(rw.total, "ransomware victim", "ransomware victims")}
+          {b.watchlistSize > 0 && (
+            <>
+              {" · "}
+              <a class="topbar-link" href="/watchlist">
+                {stackCount([...b.exploited, ...b.advisories, ...b.headlines])} in your stack
+              </a>
+            </>
+          )}
         </p>
         <Toolbar />
       </div>
@@ -325,6 +356,7 @@ export function BriefingPage({ b }: { b: Briefing }) {
         title="Actively exploited"
         total={b.exploited.length}
         fresh={newExploited}
+        inStack={stackCount(b.exploited)}
         meta={<>CISA KEV since {formatDate(b.windowStart)} · ranked by exploit likelihood</>}
       >
         {b.exploited.length === 0 ? (
@@ -343,6 +375,7 @@ export function BriefingPage({ b }: { b: Briefing }) {
         title="Advisories"
         total={advisories.length}
         fresh={newAdvisories}
+        inStack={stackCount(b.advisories)}
         meta={
           <>
             CISA since {formatDate(b.windowStart)}
@@ -373,6 +406,7 @@ export function BriefingPage({ b }: { b: Briefing }) {
         title="Headlines"
         total={b.headlines.length}
         fresh={newHeadlines}
+        inStack={stackCount(b.headlines)}
         meta={<>News since {shortTime(b.headlinesSince)}</>}
       >
         {b.headlines.length === 0 ? (
