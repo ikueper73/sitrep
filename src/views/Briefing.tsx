@@ -10,6 +10,7 @@ import {
   TEAM_COUNTRY,
 } from "../briefing";
 import { formatDate, TEAM_TIME_ZONE } from "../dates";
+import type { Focus, FocusKind } from "../focus";
 import { Layout } from "./Layout";
 import { Logo } from "./Logo";
 
@@ -97,7 +98,7 @@ function stackCount(items: { stack: StackMatch[] }[]): number {
 
 function VulnCard({ v }: { v: ExploitedVuln }) {
   return (
-    <li class={`card${v.isNew ? " new" : ""}${v.stack.length ? " in-stack" : ""}`}>
+    <li id={v.anchor} class={`card${v.isNew ? " new" : ""}${v.stack.length ? " in-stack" : ""}`}>
       <div class="card-head">
         <StackBadge stack={v.stack} />
         {v.isNew && <span class="badge badge-new">New</span>}
@@ -193,7 +194,7 @@ function CveList({ cves, kevCves, max = 6 }: { cves: string[]; kevCves: string[]
 function AdvisoryCard({ a }: { a: Advisory }) {
   const label = a.kind === "alert" ? "Alert" : a.kind === "advisory" ? "Advisory" : "Notice";
   return (
-    <li class={`card${a.isNew ? " new" : ""}${a.stack.length ? " in-stack" : ""}`}>
+    <li id={a.anchor} class={`card${a.isNew ? " new" : ""}${a.stack.length ? " in-stack" : ""}`}>
       <div class="card-head">
         <StackBadge stack={a.stack} />
         {a.isNew && <span class="badge badge-new">New</span>}
@@ -220,7 +221,7 @@ function IcsList({ items }: { items: Advisory[] }) {
       </summary>
       <ul class="compact">
         {items.map((a) => (
-          <li>
+          <li id={a.anchor}>
             <StackBadge stack={a.stack} />
             {a.isNew && <span class="badge badge-new">New</span>}{" "}
             <a href={a.url ?? undefined} target="_blank" rel="noopener noreferrer">
@@ -246,7 +247,7 @@ function IcsList({ items }: { items: Advisory[] }) {
 
 function HeadlineItem({ h }: { h: Headline }) {
   return (
-    <li class={h.stack.length ? "headline in-stack" : "headline"}>
+    <li id={h.anchor} class={h.stack.length ? "headline in-stack" : "headline"}>
       <div>
         <StackBadge stack={h.stack} />{" "}
         <a class="card-link" href={h.url ?? undefined} target="_blank" rel="noopener noreferrer">
@@ -285,6 +286,43 @@ function VictimItem({ v }: { v: RansomwareVictim }) {
         </>
       )}
     </li>
+  );
+}
+
+const FOCUS_LABEL: Record<FocusKind, string> = { act: "Act", news: "News", watch: "Watch", check: "Check" };
+
+/** Always-visible box above the sections: what to raise first at the standup. */
+function TodaysFocus({ focus, hasWatchlist }: { focus: Focus; hasWatchlist: boolean }) {
+  return (
+    <section class="focus" aria-labelledby="focus-title">
+      <h2 id="focus-title">Today's focus</h2>
+      {focus.items.length === 0 ? (
+        <p class="focus-empty">
+          {hasWatchlist
+            ? "Nothing in your stack needs attention today."
+            : "Nothing flagged. Load a watchlist to see what concerns your stack."}
+        </p>
+      ) : (
+        <ol class="focus-list">
+          {focus.items.map((f) => (
+            <li class={`focus-item focus-${f.kind}`}>
+              <span class={`badge focus-badge focus-badge-${f.kind}`}>{FOCUS_LABEL[f.kind]}</span>
+              <span class="focus-body">
+                {f.href ? (
+                  <a class="focus-text" href={f.href}>
+                    {f.text}
+                  </a>
+                ) : (
+                  <span class="focus-text">{f.text}</span>
+                )}
+                {f.detail && <span class="focus-detail">{f.detail}</span>}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+      {focus.more > 0 && <p class="focus-more">+{focus.more} more flagged in the sections below</p>}
+    </section>
   );
 }
 
@@ -394,6 +432,7 @@ export function BriefingPage({ b }: { b: Briefing }) {
 
   return (
     <Layout title={`SitRep · ${formatDate(b.today)}`} header={header}>
+      <TodaysFocus focus={b.focus} hasWatchlist={b.watchlistSize > 0} />
       <Section
         id="exploited"
         title="Actively exploited"

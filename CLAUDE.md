@@ -58,6 +58,7 @@ Every adapter returns `NormalisedItem` ([src/sources/types.ts](src/sources/types
 - Advisories (CISA): same window as KEV. ICS advisories are collapsed into one group. "CISA Adds … to KEV" alerts are dropped (duplicate the KEV section).
 - Headlines (news feeds): default "since the last standup" (previous business day, 00:00 Eastern); an explicit `?days=` widens them.
 - CVEs mentioned by advisories/headlines are extracted, enriched, and marked "KEV" when in the catalog.
+- "Today's focus" (`src/focus.ts`, always visible above the sections; also in `/api/briefing`): only items new since the last standup. Act = new KEV entry or new CISA advisory in the stack; News = new headline in the stack; Watch = new KEV entry with known ransomware use, not in the stack; Check = a failing source. Ordered Act, News, Watch, Check, then tier and EPSS; max 5 lines plus "+N more". Lines link to the item's anchor (`kev-<CVE>`, `adv-…`, `news-…`); `app.js` opens the containing section and highlights it.
 
 ## CPU budget (Workers Free plan: 10 ms per invocation)
 

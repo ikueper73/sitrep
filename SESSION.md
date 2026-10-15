@@ -28,7 +28,7 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 
 1. Watch the Workers dashboard CPU-time metric for the hourly cron now that all sources run together (Free plan limit: 10 ms per invocation).
 2. Product watchlist: built on `dev` (not deployed). Loaded locally from the draft (109 entries). To go live: merge to main, `npm run deploy` (applies migration 0003), then the user runs `npm run watchlist:sql` and `npx wrangler d1 execute sitrep --remote --file private/watchlist-load.sql`. Known tuning: the vendor-wide "Hitachi" entry (a drive configuration tool) matches unrelated "Hitachi Energy" ICS advisories — give it a product term in the CSV. The 4 "review" rows (Windows, Exchange, NetScaler, Cisco IOS) are not loaded until marked yes.
-3. Later: cross-source story dedup.
+3. Briefing improvements agreed 2026-10-15: (1) Today's focus — done on dev; (2) fewer, better headlines: merge duplicates across outlets, rank by relevance, cap ~10 with "show all"; (3) ransomware: highlight own sectors + a supplier list, collapse the rest; (4) optional "discussed" state with Jira link.
 
 ## Open questions
 
@@ -38,7 +38,6 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
   - T&C: no polling more often than every 30 min (hourly is fine); attribution "Source: Ransomware.live" with a link wherever the data is shown; no re-serving the data as an API or feed to third parties.
   - Commercial use needs prior written approval. **Decided 2026-10-13: the user confirmed sitrep's use is non-commercial.** Revisit if that changes.
 
-- Cross-source dedup of the same story (e.g. BleepingComputer and The Record both covered the French supermarket attack).
 
 ## Log
 
@@ -52,6 +51,7 @@ _Read this at the start of a session; update it before you stop. See [CLAUDE.md]
 - 2026-10-13: Custom domain and Cloudflare Access configured.
 - 2026-10-13: First production deploy; full KEV ingest fits the Free plan CPU limit.
 - 2026-10-13: EPSS + NVD enrichment. Found that test storage isn't isolated per test; added reset() before each test. Set `dev.host` so the localhost dev bypass works with a custom-domain route.
+- 2026-10-15: "Today's focus" box (improvement 1 of 4 agreed: focus box, fewer/better headlines, relevant ransomware section, optional discussed state).
 - 2026-10-14: SitRep logo (radar mark + wordmark) top-left; compact top bar on phones.
 - 2026-10-14: "Add to your stack" links on KEV items (exact vendor/product) and ICS advisories (vendor guessed from title) pre-fill the /watchlist form.
 - 2026-10-14: Watchlist in the briefing (badge, sort-first, counts), /watchlist page, loader. Vendor-wide entries match headline titles only.
