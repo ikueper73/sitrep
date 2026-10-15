@@ -5,6 +5,7 @@ import { adapters } from "./ingest";
 import { enrichers } from "./enrich";
 import { loadWatchlist } from "./watchlist/store";
 import { matchText, matchVendorProduct, type WatchEntry } from "./watchlist/match";
+import { buildFocus, type Focus } from "./focus";
 
 /** A watchlist entry an item matched. */
 export interface StackMatch {
@@ -28,6 +29,8 @@ export interface ExploitedVuln {
   epss: { score: number; percentile: number } | null;
   automatable: boolean;
   stack: StackMatch[];
+  /** In-page id of the item's card. */
+  anchor: string;
 }
 
 export interface Advisory {
@@ -41,6 +44,7 @@ export interface Advisory {
   kevCves: string[];
   isNew: boolean;
   stack: StackMatch[];
+  anchor: string;
 }
 
 export interface Headline {
@@ -54,6 +58,7 @@ export interface Headline {
   kevCves: string[];
   isNew: boolean;
   stack: StackMatch[];
+  anchor: string;
 }
 
 export interface RansomwareVictim {
@@ -97,6 +102,7 @@ export interface Briefing {
   ransomware: { summary: RansomwareSummary; victims: RansomwareVictim[] };
   /** Number of watchlist entries; 0 means no watchlist is loaded. */
   watchlistSize: number;
+  focus: Focus;
   sources: SourceStatus[];
 }
 
@@ -133,6 +139,16 @@ function matchItem(watchlist: WatchEntry[], title: string, summary: string | nul
   const specific = watchlist.filter((e) => e.products.length > 0);
   const vendorWide = watchlist.filter((e) => e.products.length === 0);
   return [...matchText(specific, `${title} ${summary ?? ""}`), ...matchText(vendorWide, title)];
+}
+
+/** Short, stable id for in-page anchors (FNV-1a of the item's URL or title). */
+function anchorId(prefix: string, key: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return `${prefix}-${(h >>> 0).toString(36)}`;
 }
 
 function toStack(matches: WatchEntry[]): StackMatch[] {
@@ -265,6 +281,7 @@ export async function buildBriefing(db: D1Database, now: Date, windowDays?: numb
       kevCves: JSON.parse(r.kev_cves) as string[],
       isNew: r.published_at >= newSinceInstant,
       stack: toStack(matchItem(watchlist, r.title, r.summary)),
+      anchor: anchorId("adv", r.url ?? r.title),
     }),
   );
   advisories.sort((a, b) => byStack(a, b) || b.publishedAt.localeCompare(a.publishedAt));
@@ -281,6 +298,7 @@ export async function buildBriefing(db: D1Database, now: Date, windowDays?: numb
       kevCves: JSON.parse(r.kev_cves) as string[],
       isNew: r.published_at >= newSinceInstant,
       stack: toStack(matchItem(watchlist, r.title, r.summary)),
+      anchor: anchorId("news", r.url ?? r.title),
     }),
   );
   headlines.sort((a, b) => byStack(a, b) || b.publishedAt.localeCompare(a.publishedAt));
@@ -313,6 +331,7 @@ export async function buildBriefing(db: D1Database, now: Date, windowDays?: numb
       stack: toStack(
         matchVendorProduct(watchlist, (JSON.parse(r.vendors) as string[])[0] ?? "", (JSON.parse(r.products) as string[])[0] ?? ""),
       ),
+      anchor: `kev-${(JSON.parse(r.cves) as string[])[0] ?? ""}`,
     };
   });
   exploited.sort(rankExploited);
@@ -341,6 +360,7 @@ export async function buildBriefing(db: D1Database, now: Date, windowDays?: numb
     headlines,
     ransomware,
     watchlistSize: watchlist.length,
+    focus: buildFocus({ exploited, advisories, headlines, sources }),
     sources,
   };
 }

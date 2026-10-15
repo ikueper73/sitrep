@@ -52,13 +52,27 @@
     actions[action]();
   });
 
-  // A link like /#ransomware opens that section.
-  const fromHash = sections.findIndex((s) => `#${s.id}` === location.hash);
-  if (fromHash !== -1) show(fromHash, "instant");
-  window.addEventListener("hashchange", () => {
-    const i = sections.findIndex((s) => `#${s.id}` === location.hash);
-    if (i !== -1) show(i);
-  });
+  // A link like /#ransomware opens that section; a link to an item inside a
+  // section (e.g. from "Today's focus") opens its section and scrolls to it.
+  function openHash(behavior) {
+    const id = decodeURIComponent(location.hash.slice(1));
+    if (!id) return;
+    const i = sections.findIndex((s) => s.id === id);
+    if (i !== -1) return show(i, behavior);
+    const target = document.getElementById(id);
+    const section = target?.closest("details.section");
+    if (!target || !section) return;
+    sections.forEach((s) => (s.open = s === section));
+    target.closest("details:not(.section)")?.setAttribute("open", ""); // e.g. the ICS group
+    current = sections.indexOf(section);
+    update();
+    target.scrollIntoView({ behavior, block: "center" });
+    target.classList.remove("flash");
+    void target.offsetWidth; // restart the highlight animation
+    target.classList.add("flash");
+  }
+  openHash("instant");
+  window.addEventListener("hashchange", () => openHash("smooth"));
 
   update();
 })();
